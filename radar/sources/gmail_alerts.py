@@ -147,14 +147,22 @@ def fetch(cfg, state):
     if not addr or not pwd:
         raise RuntimeError("GMAIL_ADDRESS / GMAIL_APP_PASSWORD non configurés (secrets GitHub)")
     st = state.setdefault("gmail", {})
+    if st.get("folder") != (os.environ.get("GMAIL_FOLDER") or "INBOX"):
+        st["last_uid"] = 0  # les numéros de messages sont propres à chaque libellé
+        st["folder"] = os.environ.get("GMAIL_FOLDER") or "INBOX"
     last_uid = int(st.get("last_uid", 0))
     imap = imaplib.IMAP4_SSL("imap.gmail.com")
     imap.login(addr, pwd.replace(" ", ""))
-    imap.select("INBOX", readonly=True)
-    if last_uid:
-        typ, data = imap.uid("search", None, f"UID {last_uid + 1}:*")
-    else:
-        typ, data = imap.uid("search", None, "SINCE", "01-Jan-2020")
+    # Boîte personnelle : on ne lit qu'un libellé (ex. « Radar ») et que les emails adressés à l'alias +appart.
+    folder = os.environ.get("GMAIL_FOLDER") or "INBOX"
+    alias = os.environ.get("GMAIL_ALIAS")
+    typ, _ = imap.select(f'"{folder}"', readonly=True)
+    if typ != "OK":
+        raise RuntimeError(f"libellé Gmail « {folder} » introuvable")
+    criteria = [f"UID {last_uid + 1}:*"] if last_uid else ["SINCE", "01-Jan-2020"]
+    if alias:
+        criteria += ["X-GM-RAW", f'"to:{alias}"']
+    typ, data = imap.uid("search", None, *criteria)
     uids = [int(u) for u in (data[0] or b"").split() if int(u) > last_uid]
     uids = uids[-300:]  # premier passage : on se limite aux 300 derniers emails
     items, per_sender, unparsed = [], {}, []

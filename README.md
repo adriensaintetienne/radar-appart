@@ -31,14 +31,30 @@ Vos données restent dans le dépôt privé, lisible uniquement avec votre jeton
 
 ## Installation (environ 45 minutes, une seule fois)
 
-### Étape 1 — L'adresse Gmail dédiée
+### Étape 1 — L'adresse email des alertes
+Deux options au choix.
+
+**Option A — votre Gmail avec `+appart` (le plus simple)**
+1. Votre adresse d'alertes devient `votre.adresse+appart@gmail.com`. Les emails arrivent dans votre boîte habituelle.
+2. Dans Gmail, créez un **filtre** : ⚙ › *Voir tous les paramètres* › *Filtres et adresses bloquées* › *Créer un filtre*,
+   puis À : `votre.adresse+appart@gmail.com` › *Créer un filtre* › cochez **Ignorer la boîte de réception**
+   et **Appliquer le libellé** › *Nouveau libellé* : `Radar` › *Créer un filtre*.
+   Les alertes sont rangées dans « Radar » sans encombrer votre boîte.
+3. Activez la **validation en deux étapes** si ce n'est pas déjà fait : https://myaccount.google.com/signinoptions/two-step-verification
+4. Créez un **mot de passe d'application** : https://myaccount.google.com/apppasswords (nom : « Radar »).
+   Google affiche 16 lettres : **notez-les**, c'est `GMAIL_APP_PASSWORD`.
+
+> Le robot ne lit que le libellé « Radar » et que les emails adressés à `+appart`. Le mot de passe d'application
+> donne techniquement accès à toute la boîte : il est stocké chiffré dans les secrets GitHub et vous pouvez le
+> révoquer à tout moment sur la même page Google. Si cela vous gêne, choisissez l'option B.
+
+**Option B — une adresse Gmail dédiée**
 1. Créez un compte Gmail, par exemple `radar.appart.xxx@gmail.com`.
-2. Activez la **validation en deux étapes** : https://myaccount.google.com/signinoptions/two-step-verification
-3. Créez un **mot de passe d'application** : https://myaccount.google.com/apppasswords
-   (nom : « Radar »). Google affiche 16 lettres : **notez-les**, c'est `GMAIL_APP_PASSWORD`.
+2. Activez la validation en deux étapes, puis créez un mot de passe d'application (étapes 3 et 4 ci-dessus).
 
 ### Étape 2 — Les alertes sur les portails
-Sur chaque site, créez un compte **avec l'adresse Gmail dédiée** et enregistrez une recherche avec alerte email.
+Sur chaque site, créez un compte **avec l'adresse d'alertes de l'étape 1** (`…+appart@gmail.com` ou l'adresse dédiée) et enregistrez une recherche avec alerte email.
+Si un site refuse le `+` dans l'adresse, utilisez exceptionnellement votre adresse normale pour ce site et prévenez Claude.
 Gardez des critères **un peu plus larges** que les vôtres : le radar affine ensuite.
 
 Critères à saisir partout : **Achat · Appartement (+ loft si proposé) · Paris 10e, 11e, 19e, 20e · prix max 1 350 000 € ·
@@ -79,8 +95,10 @@ Dans le dépôt `radar-appart` : **Settings › Secrets and variables › Action
 | Nom | Valeur |
 |---|---|
 | `DATA_REPO_TOKEN` | le jeton de l'étape 4 |
-| `GMAIL_ADDRESS` | l'adresse Gmail dédiée |
+| `GMAIL_ADDRESS` | votre adresse Gmail (sans le `+appart`) ou l'adresse dédiée |
 | `GMAIL_APP_PASSWORD` | les 16 lettres de l'étape 1 |
+| `GMAIL_ALIAS` | *(option A seulement)* `votre.adresse+appart@gmail.com` |
+| `GMAIL_FOLDER` | *(option A seulement)* `Radar` |
 | `GEMINI_API_KEY` | *(facultatif)* clé gratuite sur https://aistudio.google.com/apikey pour l'analyse IA |
 | `BRAVE_API_KEY` | *(facultatif)* clé gratuite sur https://brave.com/search/api/ : active la recherche web « filet de sécurité » (les moteurs gratuits bloquent les robots) |
 
