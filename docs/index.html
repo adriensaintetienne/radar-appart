@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radar Appart</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">🏠 Radar Appart</div>
+  <nav id="tabs">
+    <button data-tab="annonces" class="active">Annonces</button>
+    <button data-tab="carte">Carte</button>
+    <button data-tab="zone">Zone</button>
+    <button data-tab="criteres">Critères</button>
+    <button data-tab="alertes">Alertes</button>
+    <button data-tab="sources">Sources</button>
+    <button data-tab="verifier">Vérifier</button>
+  </nav>
+  <div class="top-actions">
+    <span id="last-update" class="muted"></span>
+    <button id="btn-run" class="btn small" title="Lancer une recherche maintenant">▶ Lancer</button>
+    <button id="btn-settings" class="btn small ghost" title="Connexion GitHub">⚙</button>
+  </div>
+</header>
+
+<div id="toast" class="toast hidden"></div>
+
+<main>
+  <!-- Connexion -->
+  <section id="setup" class="panel hidden">
+    <h2>Connexion</h2>
+    <p>Ces informations restent dans ce navigateur. Voir le guide d'installation (README) pour les obtenir.</p>
+    <label>Dépôt des données (privé)<input id="set-data" placeholder="mon-compte/radar-appart-data"></label>
+    <label>Dépôt du code (public)<input id="set-code" placeholder="mon-compte/radar-appart"></label>
+    <label>Jeton GitHub (token)<input id="set-token" type="password" placeholder="github_pat_…"></label>
+    <div class="row"><button id="btn-save-setup" class="btn">Se connecter</button></div>
+  </section>
+
+  <!-- Annonces -->
+  <section id="tab-annonces" class="tab">
+    <div class="filters">
+      <div class="chips" id="f-status"></div>
+      <div class="filter-row">
+        <select id="f-track">
+          <option value="">Suivi : tous</option>
+          <option value="__none">Pas encore traitées</option>
+        </select>
+        <select id="f-sort">
+          <option value="score">Tri : score</option>
+          <option value="date">Tri : plus récentes</option>
+          <option value="price">Tri : prix croissant</option>
+          <option value="ppm2">Tri : prix au m²</option>
+          <option value="total">Tri : coût total</option>
+        </select>
+        <input id="f-search" type="search" placeholder="Rechercher (rue, agence, mot-clé…)">
+        <label class="check"><input type="checkbox" id="f-inactive"> inclure retirées</label>
+      </div>
+    </div>
+    <div id="counts" class="muted"></div>
+    <div id="cards" class="cards"></div>
+  </section>
+
+  <!-- Carte -->
+  <section id="tab-carte" class="tab hidden">
+    <div id="map" class="map"></div>
+    <p class="muted">Couleurs : <span class="dot match"></span> correspond · <span class="dot a_verifier"></span> à vérifier ·
+      <span class="dot negociable"></span> négociable. Les positions issues des portails sont souvent approximatives.</p>
+  </section>
+
+  <!-- Zone -->
+  <section id="tab-zone" class="tab hidden">
+    <div class="panel">
+      <h2>Zone de recherche</h2>
+      <p>Utilisez les outils en haut à gauche de la carte : <b>⬟ polygone</b> pour tracer (cliquez point par point, puis sur le premier point pour fermer),
+        <b>✎</b> pour modifier, <b>🗑</b> pour supprimer. Vous pouvez tracer plusieurs zones. Puis <b>Enregistrer</b>.</p>
+      <p class="muted">Les annonces sans position précise (seulement le code postal) restent visibles avec la mention « localisation approximative ».</p>
+    </div>
+    <div id="zonemap" class="map tall"></div>
+    <div class="row"><button id="btn-save-zone" class="btn">Enregistrer la zone</button></div>
+  </section>
+
+  <!-- Critères -->
+  <section id="tab-criteres" class="tab hidden">
+    <form id="crit-form" class="panel form"></form>
+    <div class="row sticky-save"><button id="btn-save-crit" class="btn">Enregistrer les critères</button></div>
+  </section>
+
+  <!-- Alertes -->
+  <section id="tab-alertes" class="tab hidden">
+    <div id="alert-form" class="panel form"></div>
+    <div class="row sticky-save"><button id="btn-save-alerts" class="btn">Enregistrer</button></div>
+  </section>
+
+  <!-- Sources -->
+  <section id="tab-sources" class="tab hidden">
+    <div class="panel"><h2>État des sources</h2><div id="health"></div></div>
+    <div class="panel"><h2>Alertes email reçues (par portail)</h2><div id="senders"></div></div>
+    <div class="panel"><h2>Sites d'agences surveillés</h2><div id="agencies"></div>
+      <div class="row"><button id="btn-add-agency" class="btn ghost">+ Ajouter une agence</button>
+        <button id="btn-save-agencies" class="btn">Enregistrer les agences</button></div></div>
+    <div class="panel"><h2>Nouveaux sites découverts (recherche web)</h2><div id="discovered"></div></div>
+    <div class="panel"><h2>Derniers passages</h2><div id="runs"></div></div>
+  </section>
+
+  <!-- Vérifier -->
+  <section id="tab-verifier" class="tab hidden">
+    <div class="panel">
+      <h2>L'outil a-t-il vu cette annonce ?</h2>
+      <p>Pendant la période de test, quand vous tombez sur une annonce intéressante par vous-mêmes, collez son lien ici
+        (ou indiquez prix + surface). Le tableau de bord mesure ainsi la couverture réelle du radar.</p>
+      <label>Lien de l'annonce<input id="v-url" placeholder="https://…"></label>
+      <div class="grid3">
+        <label>Prix (€)<input id="v-price" type="number"></label>
+        <label>Surface (m²)<input id="v-surface" type="number"></label>
+        <label>Code postal<input id="v-pc" placeholder="75011"></label>
+      </div>
+      <div class="row"><button id="btn-verify" class="btn">Vérifier</button></div>
+      <div id="v-result"></div>
+    </div>
+    <div class="panel"><h2>Bilan de couverture</h2><div id="v-stats"></div></div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

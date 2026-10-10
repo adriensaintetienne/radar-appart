@@ -1,0 +1,71 @@
+name: Radar appart
+
+on:
+  schedule:
+    # Toutes les 2 heures de 7 h à 23 h (heure de Paris, été) — horaires GitHub en UTC
+    - cron: "7 5-21/2 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: radar
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  radar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Code
+        uses: actions/checkout@v4
+
+      - name: Données (dépôt privé)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.DATA_REPO || format('{0}-data', github.repository) }}
+          token: ${{ secrets.DATA_REPO_TOKEN }}
+          path: data
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Recherche
+        env:
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DASHBOARD_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: python -m radar.main --data data
+
+      - name: Enregistrer les données
+        if: always()
+        working-directory: data
+        run: |
+          git config user.name "radar-appart"
+          git config user.email "radar-appart@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Passage du radar $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do
+            git pull -q --rebase -X theirs && git push -q && exit 0
+            sleep 5
+          done
+          exit 1
+
+      # GitHub désactive les tâches planifiées d'un dépôt sans activité depuis 60 jours :
+      # un petit commit mensuel l'en empêche.
+      - name: Maintien en activité
+        run: |
+          last=$(git log -1 --format=%ct)
+          if [ $(( $(date +%s) - last )) -gt $(( 45 * 86400 )) ]; then
+            git config user.name "radar-appart"
+            git config user.email "radar-appart@users.noreply.github.com"
+            date -u > .keepalive
+            git add .keepalive && git commit -q -m "Maintien en activité" && git push -q
+          fi
