@@ -54,7 +54,8 @@ Deux options au choix.
 
 ### Étape 2 — Les alertes sur les portails
 Sur chaque site, créez un compte **avec l'adresse d'alertes de l'étape 1** (`…+appart@gmail.com` ou l'adresse dédiée) et enregistrez une recherche avec alerte email.
-Si un site refuse le `+` dans l'adresse, utilisez exceptionnellement votre adresse normale pour ce site et prévenez Claude.
+Si un site refuse le `+` dans l'adresse (c'est le cas de SeLoger), utilisez votre adresse normale pour ce site, puis ajoutez un filtre Gmail
+**De : `nom-du-site.com`** › *Ignorer la boîte de réception* + *Appliquer le libellé* (le même que celui de l'étape 1).
 Gardez des critères **un peu plus larges** que les vôtres : le radar affine ensuite.
 
 Critères à saisir partout : **Achat · Appartement (+ loft si proposé) · Paris 10e, 11e, 19e, 20e · prix max 1 350 000 € ·
@@ -97,7 +98,7 @@ Dans le dépôt `radar-appart` : **Settings › Secrets and variables › Action
 | `DATA_REPO_TOKEN` | le jeton de l'étape 4 |
 | `GMAIL_ADDRESS` | votre adresse Gmail (sans le `+appart`) ou l'adresse dédiée |
 | `GMAIL_APP_PASSWORD` | les 16 lettres de l'étape 1 |
-| `GMAIL_ALIAS` | *(option A seulement)* `votre.adresse+appart@gmail.com` |
+| `GMAIL_ALIAS` | *(option A, facultatif)* à ne créer **que si tous les sites ont accepté** l'adresse `+appart` ; sinon le robot se limite au libellé |
 | `GMAIL_FOLDER` | *(option A seulement)* `Radar` |
 | `GEMINI_API_KEY` | *(facultatif)* clé gratuite sur https://aistudio.google.com/apikey pour l'analyse IA |
 | `BRAVE_API_KEY` | *(facultatif)* clé gratuite sur https://brave.com/search/api/ : active la recherche web « filet de sécurité » (les moteurs gratuits bloquent les robots) |
