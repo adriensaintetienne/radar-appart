@@ -70,6 +70,8 @@ class Store:
         events = []
         lid = self.by_source_key.get(key) or self.find_duplicate(item)
         src_entry = {"key": key, "source": item["source"], "url": item["url"], "first_seen": ts, "last_seen": ts}
+        if item.get("price"):
+            src_entry["price"] = item["price"]
 
         if lid is None:
             lid = key
@@ -86,8 +88,14 @@ class Store:
         else:
             listing = self.listings[lid]
             known = next((s for s in listing["sources"] if s["key"] == key), None)
+            new_price = item.get("price")
             if known:
                 known["last_seen"] = ts
+                # Baisse de prix : uniquement si CETTE annonce baisse (deux agences peuvent afficher des prix différents)
+                if new_price and known.get("price") and new_price < known["price"] * 0.995:
+                    events.append("price_drop")
+                if new_price:
+                    known["price"] = new_price
             else:
                 listing["sources"].append(src_entry)
             if not listing.get("active", True):
@@ -95,25 +103,23 @@ class Store:
                 listing["relisted_count"] = listing.get("relisted_count", 0) + 1
                 listing.pop("removed_at", None)
                 events.append("relisted")
-            old_price = listing.get("price")
             for f in MERGE_FIELDS:
                 v = item.get(f)
-                if v is None:
+                if v is None or f == "price":
                     continue
                 if f == "description" and len(v) <= len(listing.get(f) or ""):
                     continue
-                if f in ("price",):
-                    continue
-                if listing.get(f) is None or f in ("title",):
+                if listing.get(f) is None:
                     listing[f] = v
-            new_price = item.get("price")
-            if new_price and old_price and new_price < old_price * 0.995:
-                events.append("price_drop")
-            if new_price and new_price != old_price:
-                listing["price"] = new_price
-                listing["price_history"].append({"date": ts, "price": new_price})
-            elif new_price and not old_price:
-                listing["price"] = new_price
+            # Prix retenu = le plus bas parmi les annonces de ce bien
+            prices = [s["price"] for s in listing["sources"] if s.get("price")]
+            best = min(prices) if prices else listing.get("price")
+            if best and best != listing.get("price"):
+                listing["price"] = best
+                if known:  # vrai changement de prix d'une annonce (pas une autre agence moins chère)
+                    listing["price_history"].append({"date": ts, "price": best})
+                elif listing["price_history"]:
+                    listing["price_history"][-1]["price"] = best
             if item.get("photos") and not listing.get("photos"):
                 listing["photos"] = item["photos"][:8]
             listing["last_seen"] = ts

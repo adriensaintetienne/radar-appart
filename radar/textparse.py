@@ -37,8 +37,19 @@ ARRONDISSEMENT_RE = re.compile(r"paris\s*(\d{1,2})\s*(?:e|eme|er|ème|ᵉ)?\b", 
 WORD_NUM = {"une": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5}
 
 
+LABELED_PRICE_RE = re.compile(
+    r"prix(?: de vente| du bien| net vendeur| honoraires inclus| fai)?\s*:?\s*"
+    r"(\d{1,3}(?:[ .\u00a0\u202f]\d{3}){1,2}|\d{6,7})\s*(?:€|euros?)", re.I
+)
+
+
 def parse_price(text):
     n = normalize(text)
+    m = LABELED_PRICE_RE.search(n)
+    if m:
+        v = _to_number(m.group(1))
+        if v and 50_000 <= v <= 20_000_000:
+            return int(v)
     m = PRICE_M_RE.search(n)
     if m:
         v = _to_number(m.group(1))
@@ -49,12 +60,19 @@ def parse_price(text):
         # ignorer les prix au m² ("10 500 €/m²") et les charges
         tail = n[m.end():m.end() + 6]
         head = n[max(0, m.start() - 25):m.start()]
-        if re.match(r"\s*/\s*m|\s*le\s*m|\s*par\s*m", tail) or re.search(r"charges?|/\s*mois|par mois|honoraires", head + tail):
+        if re.match(r"\s*/\s*m|\s*le\s*m|\s*par\s*m", tail) or re.search(r"charges?|/\s*mois|par mois|honoraires|taxe|emprunt", head + tail):
             continue
         v = _to_number(m.group(1))
         if v and 50_000 <= v <= 20_000_000:
             candidates.append(int(v))
-    return max(candidates) if candidates else None
+    if not candidates:
+        return None
+    # La valeur la plus répétée est la plus sûre (un chiffre voisin peut se coller au prix une fois) ;
+    # à égalité, la première rencontrée.
+    counts = {}
+    for c in candidates:
+        counts[c] = counts.get(c, 0) + 1
+    return max(counts, key=lambda c: (counts[c], -candidates.index(c)))
 
 
 def parse_surface(text):

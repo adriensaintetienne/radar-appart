@@ -296,13 +296,19 @@
     "name": "Espaces Atypiques",
     "enabled": true,
     "list_urls": [
-     "https://www.espaces-atypiques.com/"
+     "https://www.espaces-atypiques.com/ventes/",
+     "https://www.espaces-atypiques.com/ventes/page/2/",
+     "https://www.espaces-atypiques.com/ventes/page/3/",
+     "https://www.espaces-atypiques.com/ventes/page/4/",
+     "https://www.espaces-atypiques.com/ventes/page/5/"
     ],
-    "link_pattern": "espaces-atypiques\\.com/.*(vente|annonce|bien|loft|appartement|atelier).*\\d",
+    "link_pattern": "espaces-atypiques\\.com/ventes/\\d{5}-",
+    "postcode_in_url": "/ventes/(\\d{5})-",
+    "full_listing": false,
     "match_names": [
      "espaces atypiques"
     ],
-    "silence_alert_hours": 168
+    "silence_alert_hours": 72
    }
   ]
  },

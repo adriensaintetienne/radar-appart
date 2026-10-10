@@ -20,6 +20,10 @@ selon vos critères, les classe, et vous alerte sur WhatsApp. Tout est gratuit.
 - `radar-appart` (**public**) : le code et le tableau de bord. Aucune donnée personnelle dedans.
 - `radar-appart-data` (**privé**) : vos critères, votre zone, les annonces et votre suivi.
 
+**Ce qui est lu directement / par email** (testé en conditions réelles le 10/10/2026) :
+- Bien'ici et Espaces Atypiques : collectés directement sur leurs sites.
+- SeLoger, Leboncoin, Logic-Immo, PAP : leurs sites bloquent les robots, ils passent donc par les alertes email.
+
 Un dépôt public donne des minutes de calcul GitHub illimitées et un tableau de bord gratuit (GitHub Pages).
 Vos données restent dans le dépôt privé, lisible uniquement avec votre jeton.
 
@@ -78,6 +82,7 @@ Dans le dépôt `radar-appart` : **Settings › Secrets and variables › Action
 | `GMAIL_ADDRESS` | l'adresse Gmail dédiée |
 | `GMAIL_APP_PASSWORD` | les 16 lettres de l'étape 1 |
 | `GEMINI_API_KEY` | *(facultatif)* clé gratuite sur https://aistudio.google.com/apikey pour l'analyse IA |
+| `BRAVE_API_KEY` | *(facultatif)* clé gratuite sur https://brave.com/search/api/ : active la recherche web « filet de sécurité » (les moteurs gratuits bloquent les robots) |
 
 ### Étape 6 — Activer le tableau de bord
 Dans `radar-appart` : **Settings › Pages** → *Source* : **Deploy from a branch** → *Branch* : `main`, dossier **/docs** → *Save*.
@@ -135,7 +140,7 @@ Le robot tourne ensuite seul **toutes les 2 heures de 7 h à 23 h**.
    de son site, c'est signalé.
 3. **Vérifier** (pendant les deux premières semaines) : chaque fois que vous trouvez une annonce par vous-mêmes, collez
    son lien dans l'onglet *Vérifier*. Le tableau de bord mesure le **taux de couverture réel**, site par site.
-4. **Nouveaux sites découverts** : la recherche web quotidienne liste les sites immobiliers non surveillés.
+4. **Nouveaux sites découverts** (nécessite la clé `BRAVE_API_KEY`) : la recherche web quotidienne liste les sites immobiliers non surveillés.
    Un clic suffit pour en ajouter un comme agence.
 
 **Limite :** les biens « off-market » (proposés par les agences à leurs clients avant toute publication) ne sont

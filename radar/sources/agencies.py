@@ -21,16 +21,23 @@ def slug(name):
     return "agence:" + re.sub(r"[^a-z0-9]+", "-", normalize(name)).strip("-")
 
 
-def fetch_agency(agency, known_keys):
+def fetch_agency(agency, known_keys, postcodes=None):
     rx = re.compile(agency["link_pattern"], re.I)
-    links = set()
+    pc_rx = re.compile(agency["postcode_in_url"]) if agency.get("postcode_in_url") else None
+    links, matched = set(), 0
     for url in agency["list_urls"]:
         r = http.get(url, min_delay=2.5)
         soup = BeautifulSoup(r.text, "html.parser")
         for a in soup.find_all("a", href=True):
             full = urljoin(url, a["href"]).split("#")[0]
-            if rx.search(full):
-                links.add(full)
+            if not rx.search(full):
+                continue
+            matched += 1
+            if pc_rx and postcodes:
+                m = pc_rx.search(full)
+                if m and m.group(1) not in postcodes:
+                    continue  # hors secteur d'après l'adresse de la fiche : inutile de l'ouvrir
+            links.add(full)
     name = slug(agency["name"])
     items, fetched = [], 0
     for link in sorted(links):
@@ -48,5 +55,8 @@ def fetch_agency(agency, known_keys):
         except Exception as e:
             item["enrich_error"] = str(e)[:160]
         items.append(item)
-    info = f"{len(links)} fiche(s) trouvée(s) sur le site, {fetched} nouvelle(s) lue(s)"
-    return items, {"full_listing": True, "info": info, "links_found": len(links)}
+    full = agency.get("full_listing", True)
+    info = f"{matched} lien(s) de fiche reconnus, {len(links)} dans le secteur, {fetched} nouvelle(s) lue(s)"
+    # nonzero : le site renvoie bien des fiches reconnues, même si aucune n'est dans le secteur ce jour-là.
+    # Zéro lien reconnu = le site a probablement changé de présentation -> alerte de silence.
+    return items, {"full_listing": full, "info": info, "links_found": len(links), "nonzero": matched > 0}

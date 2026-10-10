@@ -101,10 +101,15 @@ DEFAULT_CONFIG = {
             {
                 "name": "Espaces Atypiques",
                 "enabled": True,
-                "list_urls": ["https://www.espaces-atypiques.com/"],
-                "link_pattern": r"espaces-atypiques\.com/.*(vente|annonce|bien|loft|appartement|atelier).*\d",
+                # Les 5 premières pages (triées par date) contiennent les nouveautés de toute la France ;
+                # le code postal présent dans l'adresse de chaque fiche permet de ne lire que le secteur.
+                "list_urls": ["https://www.espaces-atypiques.com/ventes/"]
+                + [f"https://www.espaces-atypiques.com/ventes/page/{i}/" for i in range(2, 6)],
+                "link_pattern": r"espaces-atypiques\.com/ventes/\d{5}-",
+                "postcode_in_url": r"/ventes/(\d{5})-",
+                "full_listing": False,
                 "match_names": ["espaces atypiques"],
-                "silence_alert_hours": 168,
+                "silence_alert_hours": 72,
             }
         ],
     },

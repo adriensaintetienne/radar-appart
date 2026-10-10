@@ -61,7 +61,7 @@ def analyze(listing, cfg):
     if listing.get("new_build"):
         reasons_reject.append("programme neuf")
     ptype = normalize(listing.get("property_type") or "")
-    if ptype and any(w in ptype for w in ("maison", "terrain", "parking", "bureau", "local", "immeuble")):
+    if ptype and any(w in ptype for w in ("terrain", "parking", "bureau", "local", "immeuble", "programme", "house")):
         reasons_reject.append(f"type de bien exclu ({listing.get('property_type')})")
 
     # --- localisation

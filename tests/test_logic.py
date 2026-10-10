@@ -188,3 +188,15 @@ def test_end_to_end(tmp_path, monkeypatch):
     assert len(sent) == 3 and "Baisse de prix" in sent[2]
     data = json.loads((tmp_path / "listings.json").read_text())
     assert len(data["listings"]) == 2
+
+
+def test_different_agency_price_is_not_a_drop():
+    st = Store({"listings": {}})
+    a = dict(BASE, source="bienici", url="https://www.bienici.com/annonce/ag-1", ext_id="ag-1", price=1081500, surface=89, rooms=4)
+    b = dict(BASE, source="bienici", url="https://www.bienici.com/annonce/ap-2", ext_id="ap-2", price=1050000, surface=89.5, rooms=4)
+    lid, _ = st.upsert(a)
+    lid2, ev = st.upsert(b)
+    assert lid == lid2 and "price_drop" not in ev
+    assert st.listings[lid]["price"] == 1050000  # prix le plus bas retenu
+    _, ev = st.upsert(dict(a, price=1000000))   # la première agence baisse vraiment
+    assert "price_drop" in ev and st.listings[lid]["price"] == 1000000

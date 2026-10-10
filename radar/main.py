@@ -16,10 +16,6 @@ from .http import Blocked
 from .sources import agencies, bienici, gmail_alerts, websearch
 from .store import Store, now_iso, source_key
 
-# Champs qui, s'ils manquent, justifient d'ouvrir la fiche complète
-KEY_FIELDS = ("surface", "floor", "elevator", "bedrooms", "price")
-
-
 def log(msg):
     print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
 
@@ -63,7 +59,7 @@ def run(data_dir, dry_run=False, only=None):
                 continue
             key = source_key(item["source"], item["url"], item.get("ext_id"))
             is_new = key not in store.by_source_key
-            needs_detail = item.get("via") == "email" or any(item.get(f) is None for f in KEY_FIELDS)
+            needs_detail = item.get("via") == "email"  # les sources directes fournissent déjà la fiche complète
             if is_new and needs_detail and cfg.get("enrich_detail_pages") and not item.get("enriched"):
                 dom = urlparse(item["url"]).netloc
                 if dom not in blocked_domains:
@@ -89,7 +85,7 @@ def run(data_dir, dry_run=False, only=None):
         name = agencies.slug(ag["name"])
         if ag.get("enabled", True) and (wanted(name) or (only and "agencies" in only)):
             known = {s["key"] for l in store.listings.values() for s in l["sources"] if s["source"] == name}
-            sources.append((name, (lambda a=ag, k=known: agencies.fetch_agency(a, k)), name))
+            sources.append((name, (lambda a=ag, k=known: agencies.fetch_agency(a, k, cfg["postcodes"])), name))
     if cfg["sources"]["websearch"].get("enabled") and wanted("websearch"):
         sources.append(("websearch", lambda: websearch.fetch(cfg, state), None))
 
@@ -99,6 +95,8 @@ def run(data_dir, dry_run=False, only=None):
             items, meta = fn()
             if meta.get("skipped"):
                 log(f"  {meta['info']}")
+                if "veille" in meta.get("info", ""):
+                    health.record(state, name, True, info=meta["info"])
                 continue
             n_new, removed = ingest(items, full_name or name, bool(full_name) and meta.get("full_listing", False))
             info = meta.get("info", "") + (f" — {n_new} nouvelle(s)" if n_new else "")
