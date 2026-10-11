@@ -94,7 +94,7 @@ def geocode(query, postcode=None):
     return None
 
 
-def locate(listing, zone, postcodes):
+def locate(listing, zone, postcodes, tolerance_m=0):
     """Calcule la situation géographique de l'annonce.
 
     Renvoie (statut, motif) avec statut ∈ {'in', 'out', 'edge', 'approx', 'unknown'}.
@@ -120,13 +120,13 @@ def locate(listing, zone, postcodes):
         if in_zone(lat, lon, zone):
             return ("in", "dans la zone") if precision in ("exact", "street") else ("approx", "dans la zone (position approximative)")
         d = distance_to_zone_m(lat, lon, zone)
-        tolerance = 120 if precision in ("exact", "street") else 450
-        if d <= tolerance:
-            return "edge", f"en bordure de zone (~{int(d)} m, position {'précise' if tolerance == 120 else 'approximative'})"
+        if tolerance_m and d <= tolerance_m:
+            return "edge", f"en bordure de zone (~{int(d)} m, position {'précise' if precision in ('exact', 'street') else 'approximative'})"
         return "out", f"hors zone dessinée (~{int(d)} m)"
 
     if pc and pc in postcodes:
         if zone_defined(zone):
-            return "approx", f"localisation approximative ({pc}) — vérifier le quartier"
+            # Sans position, impossible de savoir si le bien est dans la zone : à vérifier, jamais « correspond »
+            return "unknown", f"position inconnue (seulement {pc}) — vérifier qu'il est dans la zone"
         return "in", f"secteur {pc}"
     return "unknown", "localisation inconnue"

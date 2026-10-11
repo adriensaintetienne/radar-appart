@@ -10,6 +10,8 @@ DEFAULT_CONFIG = {
     # Si vide, on se contente des codes postaux ci-dessous.
     "zone": {"type": "FeatureCollection", "features": []},
     "postcodes": ["75010", "75011", "75019", "75020"],
+    # Tolérance (mètres) autour de la zone pour les positions floutées : 0 = exclusion stricte
+    "zone_tolerance_m": 0,
     "property_types": ["appartement", "loft", "atelier", "duplex"],
     "budget": {
         "total_max": 1400000,

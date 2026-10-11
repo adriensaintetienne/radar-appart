@@ -12,7 +12,7 @@ const STATUS = {
 };
 const TRACK = {
   interesse: "⭐ Intéressant", contacte: "📞 Contacté", visite_prevue: "📅 Visite prévue",
-  visite: "👀 Visité", offre: "✍️ Offre faite", rejete: "✖ Pas pour nous",
+  visite: "👀 Visité", offre: "✍️ Offre faite", rejete: "✖ Masquée (pas pour nous)",
 };
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -159,6 +159,7 @@ function filteredListings() {
     if (!ui.status.has(l.status)) return false;
     if (!inactive && l.active === false) return false;
     const t = S.tracking.items[l.id]?.status || "";
+    if (!track && t === "rejete") return false;  // masquées : visibles seulement via le filtre de suivi
     if (track === "__none" && t) return false;
     if (track && track !== "__none" && t !== track) return false;
     if (q && !listingText(l).includes(q)) return false;
@@ -217,6 +218,7 @@ function cardHtml(l) {
       ${hist}${desc}
     </div>
     <div class="track">
+      <button type="button" class="btn danger small t-hide">${t.status === "rejete" ? "↩ Réafficher" : "✖ Masquer cette annonce"}</button>
       <select class="t-status"><option value="">Suivi…</option>${Object.entries(TRACK).map(([k, v]) => `<option value="${k}" ${t.status === k ? "selected" : ""}>${v}</option>`).join("")}</select>
       <textarea class="t-notes" placeholder="Notes partagées…">${esc(t.notes || "")}</textarea>
     </div>
@@ -232,19 +234,26 @@ function renderListings() {
   $("#cards").innerHTML = arr.slice(0, 300).map(cardHtml).join("") || `<div class="panel">Aucune annonce pour ces filtres.${Object.keys(S.listings).length ? "" : " Le robot n'a pas encore tourné : cliquez sur ▶ Lancer."}</div>`;
   $$("#cards .card").forEach((card) => {
     const id = card.dataset.id;
-    $(".t-status", card).onchange = (e) => saveTracking(id, { status: e.target.value });
+    $(".t-status", card).onchange = (e) => saveTracking(id, { status: e.target.value }).then(renderListings);
+    $(".t-hide", card).onclick = async () => {
+      const hidden = S.tracking.items[id]?.status === "rejete";
+      card.style.opacity = ".3";
+      await saveTracking(id, { status: hidden ? "" : "rejete" },
+        hidden ? "Annonce réaffichée" : "Annonce masquée — retrouvable avec le filtre « Suivi : Masquée »");
+      renderListings();
+    };
     $(".t-notes", card).onchange = (e) => saveTracking(id, { notes: e.target.value });
   });
 }
 
-async function saveTracking(id, patch) {
+async function saveTracking(id, patch, message = "Suivi enregistré") {
   try {
     const res = await updateJson("tracking.json", { items: {} }, (d) => {
       d.items ||= {};
       d.items[id] = { ...(d.items[id] || {}), ...patch, updated_at: new Date().toISOString() };
     }, `Suivi annonce ${id}`);
     S.tracking = res.data; S.trackingSha = res.sha;
-    toast("Suivi enregistré");
+    toast(message);
   } catch (e) { toast("Échec de l'enregistrement : " + e.message, true); }
 }
 
@@ -268,7 +277,7 @@ function renderMap() {
   zoneLayer({ color: "#2f5d50", weight: 2, fillOpacity: 0.05, interactive: false }).addTo(group);
   const colors = { match: "#2e8b57", a_verifier: "#c98a00", negociable: "#3a6ea5" };
   Object.values(S.listings).forEach((l) => {
-    if (l.active === false || l.status === "rejete" || l.lat == null) return;
+    if (l.active === false || l.status === "rejete" || l.lat == null || S.tracking.items[l.id]?.status === "rejete") return;
     L.circleMarker([l.lat, l.lon], { radius: 7 + (l.score || 0) / 20, color: "#fff", weight: 1.5, fillColor: colors[l.status], fillOpacity: 0.9 })
       .bindPopup(`<b>${eur(l.price)}</b> · ${l.surface || "?"} m² · score ${l.score}<br>${esc((l.title || "").slice(0, 80))}<br>
         ${l.geo_precision === "exact" ? "" : "<i>position approximative</i><br>"}<a href="${esc(l.url)}" target="_blank">Voir l'annonce ↗</a>`)
@@ -339,6 +348,8 @@ function renderCriteria() {
     </div>
     <label>Exclure les immeubles construits à partir de (année)<input id="c-year" type="number" value="${c.exclude_built_from_year ?? 1960}"></label>
     <label>Codes postaux acceptés (séparés par des virgules)<input id="c-pc" value="${esc((c.postcodes || []).join(", "))}"></label>
+    <label>Tolérance autour de la zone dessinée (mètres)<input id="c-tol" type="number" value="${c.zone_tolerance_m ?? 0}"></label>
+    <p class="help">0 = exclusion stricte. Les portails floutent la position des biens (≈ 250 m) : une tolérance de 200–300 m garde, en « à vérifier », les biens dont la position floutée tombe juste hors de la zone.</p>
     <label>Mots-clés éliminatoires (un par ligne)<textarea id="c-excl" rows="6">${esc((c.exclude_keywords || []).join("\n"))}</textarea></label>
     <h2>Score (points par critère « bonus »)</h2>
     <p class="help">Les mots-clés sont cherchés dans le titre et la description (accents et majuscules ignorés). Points négatifs = pénalité.</p>
@@ -386,6 +397,7 @@ async function saveCriteria() {
       c.elevator_required_from_floor = num("#c-elev");
       c.exclude_built_from_year = num("#c-year");
       c.postcodes = lines("#c-pc");
+      c.zone_tolerance_m = num("#c-tol") || 0;
       c.exclude_keywords = $("#c-excl").value.split("\n").map((s) => s.trim()).filter(Boolean);
       c.scoring = scoring;
       c.enrich_detail_pages = $("#c-enrich").checked;

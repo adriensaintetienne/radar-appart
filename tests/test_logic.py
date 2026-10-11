@@ -112,8 +112,17 @@ def test_zone_polygon(cfg):
     assert inside["status"] == "match"
     outside = analyze.analyze(dict(BASE, lat=48.85, lon=2.40, geo_precision="exact"), cfg)
     assert outside["status"] == "rejete"
+    # juste à côté de la zone : écarté par défaut (exclusion stricte)
+    edge = analyze.analyze(dict(BASE, lat=48.8702, lon=2.38, geo_precision="approx"), cfg)
+    assert edge["status"] == "rejete"
+    # avec une tolérance réglée : à vérifier
+    cfg["zone_tolerance_m"] = 300
     edge = analyze.analyze(dict(BASE, lat=48.8702, lon=2.38, geo_precision="approx"), cfg)
     assert edge["status"] == "a_verifier"
+    # sans aucune position : jamais « correspond »
+    cfg["zone_tolerance_m"] = 0
+    nopos = analyze.analyze(dict(BASE, description=BASE["description"]), cfg)
+    assert nopos["status"] == "a_verifier"
 
 
 def test_missing_info_goes_to_check(cfg):
