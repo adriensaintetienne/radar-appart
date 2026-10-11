@@ -103,10 +103,25 @@ def _block_text(a_tag):
     return best, node
 
 
+def _bytes_to_str(data, charset):
+    """Décode en tolérant les encodages inconnus ou fantaisistes (ex. « unknown-8bit »)."""
+    if data is None:
+        return ""
+    if charset:
+        try:
+            return data.decode(charset, "replace")
+        except LookupError:
+            pass
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        return data.decode("latin-1")
+
+
 def _decode(s):
     out = ""
     for part, enc in decode_header(s or ""):
-        out += part.decode(enc or "utf-8", "replace") if isinstance(part, bytes) else part
+        out += _bytes_to_str(part, enc) if isinstance(part, bytes) else part
     return out
 
 
@@ -170,32 +185,35 @@ def fetch(cfg, state):
     uids = uids[-300:]  # premier passage : on se limite aux 300 derniers emails
     items, per_sender, unparsed = [], {}, []
     for uid in uids:
-        typ, msg_data = imap.uid("fetch", str(uid), "(RFC822)")
-        if not msg_data or not msg_data[0]:
-            continue
-        msg = email.message_from_bytes(msg_data[0][1])
-        sender = _decode(msg.get("From", "")).lower()
-        subject = _decode(msg.get("Subject", ""))
-        html = None
-        for part in msg.walk():
-            if part.get_content_type() == "text/html":
-                html = part.get_payload(decode=True).decode(part.get_content_charset() or "utf-8", "replace")
-                break
-        if html is None:
+        try:
+            typ, msg_data = imap.uid("fetch", str(uid), "(RFC822)")
+            if not msg_data or not msg_data[0]:
+                continue
+            msg = email.message_from_bytes(msg_data[0][1])
+            sender = _decode(msg.get("From", "")).lower()
+            subject = _decode(msg.get("Subject", ""))
+            html = None
             for part in msg.walk():
-                if part.get_content_type() == "text/plain":
-                    txt = part.get_payload(decode=True).decode(part.get_content_charset() or "utf-8", "replace")
-                    html = re.sub(r"(https?://\S+)", r'<a href="\1">\1</a>', txt).replace("\n", "<br>")
+                if part.get_content_type() == "text/html":
+                    html = _bytes_to_str(part.get_payload(decode=True), part.get_content_charset())
                     break
-        found = parse_email_html(html or "", sender)
-        label = next((v for k, v in SENDER_HINTS.items() if k in sender), sender.split("<")[-1].strip(">"))
-        per_sender.setdefault(label, {"emails": 0, "listings": 0, "last_email_at": None})
-        per_sender[label]["emails"] += 1
-        per_sender[label]["listings"] += len(found)
-        per_sender[label]["last_email_at"] = msg.get("Date")
-        if not found and any(k in sender for k in SENDER_HINTS):
-            unparsed.append({"uid": uid, "from": sender, "subject": subject[:120]})
-        items.extend(found)
+            if html is None:
+                for part in msg.walk():
+                    if part.get_content_type() == "text/plain":
+                        txt = _bytes_to_str(part.get_payload(decode=True), part.get_content_charset())
+                        html = re.sub(r"(https?://\S+)", r'<a href="\1">\1</a>', txt).replace("\n", "<br>")
+                        break
+            found = parse_email_html(html or "", sender)
+            label = next((v for k, v in SENDER_HINTS.items() if k in sender), sender.split("<")[-1].strip(">"))
+            per_sender.setdefault(label, {"emails": 0, "listings": 0, "last_email_at": None})
+            per_sender[label]["emails"] += 1
+            per_sender[label]["listings"] += len(found)
+            per_sender[label]["last_email_at"] = msg.get("Date")
+            if not found and any(k in sender for k in SENDER_HINTS):
+                unparsed.append({"uid": uid, "from": sender, "subject": subject[:120]})
+            items.extend(found)
+        except Exception as e:  # un email illisible ne doit pas bloquer les autres
+            unparsed.append({"uid": uid, "from": "?", "subject": f"email illisible ({type(e).__name__})"})
         last_uid = max(last_uid, uid)
     imap.logout()
     st["last_uid"] = last_uid

@@ -223,3 +223,10 @@ def test_undelivered_messages_are_retried(tmp_path, monkeypatch):
     n = len(sent)
     main.run(str(tmp_path))                       # et pas de doublon ensuite
     assert len(sent) == n
+
+
+def test_email_unknown_encoding():
+    from radar.sources.gmail_alerts import _bytes_to_str, _decode
+    assert _bytes_to_str("Évry".encode("latin-1"), "unknown-8bit") == "Évry"
+    assert _bytes_to_str("Évry".encode("utf-8"), "unknown-8bit") == "Évry"
+    assert "Alerte" in _decode("=?unknown-8bit?q?Alerte_=E9t=E9?=")
