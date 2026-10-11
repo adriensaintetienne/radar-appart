@@ -76,6 +76,9 @@ def parse_price(text):
     return max(counts, key=lambda c: (counts[c], -candidates.index(c)))
 
 
+PRICE_PER_M2_RE = re.compile(r"(\d{1,3}(?:[ .]?\d{3})(?:,\d{1,2})?)\s*€\s*/\s*m", re.I)
+
+
 def parse_surface(text):
     n = normalize(text)
     vals = []
@@ -86,7 +89,16 @@ def parse_surface(text):
         v = _to_number(m.group(1))
         if v and 9 <= v <= 1000:
             vals.append(v)
-    return max(vals) if vals else None
+    if vals:
+        return max(vals)
+    # À défaut : surface = prix / prix au m² (ex. « 1 290 000 € 12 403,85 €/m² »)
+    m = PRICE_PER_M2_RE.search(text.replace("\u00a0", " ").replace("\u202f", " "))
+    price = parse_price(text)
+    if m and price:
+        ppm2 = _to_number(m.group(1))
+        if ppm2 and 1000 < ppm2 < 50000:
+            return round(price / ppm2, 1)
+    return None
 
 
 def parse_rooms(text):

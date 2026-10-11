@@ -31,7 +31,7 @@ PORTALS = {
     "bienici": re.compile(r"bienici\.com/annonce/(?:[^/?#]+/)*?([a-z0-9-]*\d[a-z0-9-]{5,})(?:[/?#]|$)"),
     "logicimmo": re.compile(r"logic-immo\.com/(?:annonces?/(?:achat|vente)/[^?#]*/([A-Za-z0-9]{8,}?)(?:\.htm)?(?=[?#/]|$)|(?:detail-vente-|annonces?/)[^?#]*?([0-9a-f]{8}-[0-9a-f-]{27}|\d{6,}))"),
     "figaro": re.compile(r"immobilier\.lefigaro\.fr/annonces/annonce-(\d{6,})"),
-    "bellesdemeures": re.compile(r"bellesdemeures\.com/annonces?/[^?#]*/([A-Za-z0-9]{8,}?)(?:\.htm)?(?=[?#/]|$)"),
+    "bellesdemeures": re.compile(r"bellesdemeures\.com/(?:annonces?/[^?#]*/([A-Za-z0-9]{8,}?)(?:\.htm)?(?=[?#/]|$)|(\d{6,})/detail\.htm)"),
     "paruvendu": re.compile(r"paruvendu\.fr/immobilier/[^?#]*?(\d{6,})"),
     "ouestfrance": re.compile(r"ouestfrance-immo\.com/(?:immobilier/)?[^?#]*?(\d{6,})\.htm"),
     "superimmo": re.compile(r"superimmo\.com/annonces/[^?#]*?([0-9a-f]{20,}|\d{6,})"),
@@ -51,11 +51,27 @@ SKIP_LINK_RE = re.compile(r"d[ée]sabonn|g[ée]rer mes|arr[êe]ter cette alerte|
                           r"application|t[ée]l[ée]charg|mon compte|pr[ée]f[ée]rences|unsubscribe", re.I)
 
 
+# Domaines de portails : si l'URL ne correspond à aucun format connu, on retient quand même
+# le dernier segment qui ressemble à un identifiant (évite de perdre une annonce sur un changement de format).
+PORTAL_DOMAINS = {
+    "seloger.com": "seloger", "logic-immo.com": "logicimmo", "bellesdemeures.com": "bellesdemeures",
+    "leboncoin.fr": "leboncoin", "pap.fr": "pap", "bienici.com": "bienici", "lefigaro.fr": "figaro",
+}
+FALLBACK_ID_RE = re.compile(r"/([A-Za-z0-9-]*\d[A-Za-z0-9-]{5,})(?:\.htm|/detail\.htm)?(?=[/?#]|$)")
+NOT_LISTING_RE = re.compile(r"/(?:compte|account|alerte|alert|recherche|search|list|aide|help|legal|cgu)", re.I)
+
+
 def identify(url):
     for portal, rx in PORTALS.items():
         m = rx.search(url)
         if m:
             return portal, next(g for g in m.groups() if g)
+    host = urlparse(url).netloc.lower()
+    portal = next((p for d, p in PORTAL_DOMAINS.items() if host.endswith(d)), None)
+    if portal and not NOT_LISTING_RE.search(urlparse(url).path):
+        ids = FALLBACK_ID_RE.findall(urlparse(url).path)
+        if ids:
+            return portal, ids[-1]
     return None, None
 
 
