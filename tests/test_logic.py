@@ -239,3 +239,47 @@ def test_email_unknown_encoding():
     assert _bytes_to_str("Évry".encode("latin-1"), "unknown-8bit") == "Évry"
     assert _bytes_to_str("Évry".encode("utf-8"), "unknown-8bit") == "Évry"
     assert "Alerte" in _decode("=?unknown-8bit?q?Alerte_=E9t=E9?=")
+
+
+SELOGER_HTML = """<table>
+<tr><td><table class="card">
+ <tr><td><a href="https://click.by.seloger.com/?qs=A1">Localisation différente</a></td></tr>
+ <tr><td><a href="https://click.by.seloger.com/?qs=A2">709 000 € 6 817,31 €/m²</a></td></tr>
+ <tr><td><a href="https://click.by.seloger.com/?qs=A3">5 PIECES AU 7EME ET DERNIER ETAGE</a></td></tr>
+ <tr><td><a href="https://click.by.seloger.com/?qs=A4">5 pièces . 104 m²</a></td></tr>
+ <tr><td><a href="https://click.by.seloger.com/?qs=A5">Les Lilas (93260)</a></td></tr>
+ <tr><td><a href="https://click.by.seloger.com/?qs=A6">Voir l'annonce</a></td></tr>
+</table></td></tr>
+<tr><td><table class="card">
+ <tr><td><a href="https://click.by.seloger.com/?qs=B2">1 090 000 € 10 480 €/m²</a></td></tr>
+ <tr><td><a href="https://click.by.seloger.com/?qs=B3">Appartement familial lumineux</a></td></tr>
+ <tr><td><a href="https://click.by.seloger.com/?qs=B4">5 pièces . 104 m²</a></td></tr>
+ <tr><td><a href="https://click.by.seloger.com/?qs=B5">Paris 11ème (75011)</a></td></tr>
+ <tr><td><a href="https://click.by.seloger.com/?qs=B6">Voir l'annonce</a></td></tr>
+</table></td></tr>
+<tr><td><a href="https://click.by.seloger.com/?qs=Z1">Se désabonner des offres alternatives</a></td></tr>
+</table>"""
+
+
+def test_seloger_tracking_links(monkeypatch):
+    calls = []
+
+    class Resp:
+        def __init__(self, loc): self.headers = {"location": loc}
+        def close(self): pass
+
+    def fake_get(url, **kw):
+        calls.append(url)
+        card = url.split("qs=")[1][0]
+        ids = {"A": "les-lilas-93260/26A4PSJDIKBI", "B": "paris-11eme-75011/27B5QTKEJLCJ"}
+        return Resp(f"https://www.seloger.com/annonce/achat/ile-de-france/{ids.get(card, 'x/NOTANAD')}?utm_source=crm")
+
+    gmail_alerts._redirect_cache.clear()
+    monkeypatch.setattr(gmail_alerts.http.session(), "get", fake_get)
+    items = gmail_alerts.parse_email_html(SELOGER_HTML)
+    by = {i["ext_id"]: i for i in items}
+    assert set(by) == {"26A4PSJDIKBI", "27B5QTKEJLCJ"}
+    assert by["27B5QTKEJLCJ"]["price"] == 1090000 and by["27B5QTKEJLCJ"]["surface"] == 104
+    assert by["27B5QTKEJLCJ"]["postcode"] == "75011" and by["26A4PSJDIKBI"]["postcode"] == "93260"
+    assert not any("Z1" in c for c in calls)  # lien de désabonnement jamais suivi
+    assert len(calls) <= 4                    # une seule résolution (ou presque) par annonce

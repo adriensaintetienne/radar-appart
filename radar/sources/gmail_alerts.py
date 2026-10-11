@@ -12,6 +12,7 @@ import re
 from email.header import decode_header
 from urllib.parse import parse_qs, unquote, urlparse
 
+import requests
 from bs4 import BeautifulSoup
 
 from .. import http
@@ -23,13 +24,14 @@ FULL_LISTING = False
 
 # portail -> regex qui reconnaît une URL de fiche et capture son identifiant
 PORTALS = {
-    "seloger": re.compile(r"seloger\.com/annonces/(?:achat|investissement|viager)[^?#]*?/(\d{6,})\.htm"),
+    # ancien format …/123456789.htm et nouveau format /annonce/achat/…/26A4PSJDIKBI
+    "seloger": re.compile(r"seloger\.com/annonces?/(?:achat|investissement|viager)/[^?#]*/([A-Za-z0-9]{8,}?)(?:\.htm)?(?=[?#/]|$)"),
     "leboncoin": re.compile(r"leboncoin\.fr/(?:ad/[a-z_]+|vi|ventes_immobilieres)/(\d{6,})"),
     "pap": re.compile(r"pap\.fr/annonces/[^?#]*?-r(\d{6,})"),
     "bienici": re.compile(r"bienici\.com/annonce/(?:[^/?#]+/)*?([a-z0-9-]*\d[a-z0-9-]{5,})(?:[/?#]|$)"),
-    "logicimmo": re.compile(r"logic-immo\.com/(?:detail-vente-|annonces?/)[^?#]*?([0-9a-f]{8}-[0-9a-f-]{27}|\d{6,})"),
+    "logicimmo": re.compile(r"logic-immo\.com/(?:annonces?/(?:achat|vente)/[^?#]*/([A-Za-z0-9]{8,}?)(?:\.htm)?(?=[?#/]|$)|(?:detail-vente-|annonces?/)[^?#]*?([0-9a-f]{8}-[0-9a-f-]{27}|\d{6,}))"),
     "figaro": re.compile(r"immobilier\.lefigaro\.fr/annonces/annonce-(\d{6,})"),
-    "bellesdemeures": re.compile(r"bellesdemeures\.com/annonces/[^?#]*?/(\d{6,})\.htm"),
+    "bellesdemeures": re.compile(r"bellesdemeures\.com/annonces?/[^?#]*/([A-Za-z0-9]{8,}?)(?:\.htm)?(?=[?#/]|$)"),
     "paruvendu": re.compile(r"paruvendu\.fr/immobilier/[^?#]*?(\d{6,})"),
     "ouestfrance": re.compile(r"ouestfrance-immo\.com/(?:immobilier/)?[^?#]*?(\d{6,})\.htm"),
     "superimmo": re.compile(r"superimmo\.com/annonces/[^?#]*?([0-9a-f]{20,}|\d{6,})"),
@@ -44,13 +46,16 @@ SENDER_HINTS = {
 TRACKING_HOSTS = ("click.", "clic.", "link.", "links.", "track", "email.", "e.", "t.", "r.", "mailing", "sendgrid",
                   "list-manage", "mjt.lu", "sib", "jinka", "eu.", "url")
 _redirect_cache = {}
+# liens de pied d'email à ne jamais suivre
+SKIP_LINK_RE = re.compile(r"d[ée]sabonn|g[ée]rer mes|arr[êe]ter cette alerte|confidentialit|conditions g[ée]n[ée]rales|cliquez ici|"
+                          r"application|t[ée]l[ée]charg|mon compte|pr[ée]f[ée]rences|unsubscribe", re.I)
 
 
 def identify(url):
     for portal, rx in PORTALS.items():
         m = rx.search(url)
         if m:
-            return portal, m.group(1)
+            return portal, next(g for g in m.groups() if g)
     return None, None
 
 
@@ -70,17 +75,19 @@ def _unwrap(url):
         return url
     if url in _redirect_cache:
         return _redirect_cache[url]
-    final = url
+    # On suit les redirections une par une, sans ouvrir la page finale (souvent protégée contre les robots).
+    final, current = url, url
     try:
-        r = http.session().get(url, allow_redirects=True, timeout=15, stream=True)
-        chain = [h.headers.get("location", "") for h in r.history] + [r.url]
-        for u in chain:
-            if identify(u)[0]:
-                final = u
+        for _ in range(4):
+            r = http.session().get(current, allow_redirects=False, timeout=12)
+            loc = r.headers.get("location")
+            r.close()
+            if not loc:
                 break
-        else:
-            final = r.url
-        r.close()
+            current = requests.compat.urljoin(current, loc)
+            if identify(current)[0]:
+                final = current
+                break
     except Exception:
         pass
     _redirect_cache[url] = final
@@ -98,7 +105,8 @@ def _block_text(a_tag):
         if len(t) > 700:
             break
         best = t
-        if "€" in t and re.search(r"m²|m2", t):
+        # la carte d'annonce est complète quand on y trouve prix, surface et localisation
+        if "€" in t and re.search(r"m²|m2", t) and re.search(r"\(\d{5}\)|\b\d{5}\b|paris", t, re.I):
             break
     return best, node
 
@@ -128,15 +136,22 @@ def _decode(s):
 def parse_email_html(html, sender=""):
     soup = BeautifulSoup(html, "html.parser")
     results = {}
+    done_blocks = set()  # cartes déjà identifiées : inutile de résoudre leurs autres liens
     for a in soup.find_all("a", href=True):
         href = a["href"].strip()
         if not href.startswith("http"):
+            continue
+        if SKIP_LINK_RE.search(a.get_text(" ", strip=True)):
+            continue
+        text, block = _block_text(a)
+        if block is not None and id(block) in done_blocks:
             continue
         url = _unwrap(href)
         portal, ext_id = identify(url)
         if not portal:
             continue
-        text, block = _block_text(a)
+        if block is not None:
+            done_blocks.add(id(block))
         key = (portal, ext_id)
         prev = results.get(key)
         if prev and len(prev["_text"]) >= len(text):

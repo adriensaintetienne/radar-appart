@@ -44,7 +44,8 @@ LABELED_PRICE_RE = re.compile(
 
 
 def parse_price(text):
-    n = normalize(text)
+    # « m² » devient « m2 » après normalisation : on le neutralise pour que « 102 m² 835.000 € » ne se lise pas « 2 835.000 »
+    n = re.sub(r"\bm\s?2\b", " m_ ", normalize(text))
     m = LABELED_PRICE_RE.search(n)
     if m:
         v = _to_number(m.group(1))
