@@ -223,6 +223,8 @@ def fetch(cfg, state):
             msg = email.message_from_bytes(msg_data[0][1])
             sender = _decode(msg.get("From", "")).lower()
             subject = _decode(msg.get("Subject", ""))
+            if subject.lower().startswith("radar appart") and addr.lower() in sender:
+                continue  # nos propres emails d'alerte : à ne pas relire comme une alerte de portail
             html = None
             for part in msg.walk():
                 if part.get_content_type() == "text/html":
