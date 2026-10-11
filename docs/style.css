@@ -115,3 +115,9 @@ th { color: var(--muted); font-weight: 600; }
   #tabs { order: 3; flex-basis: 100%; }
   .brand { flex: 1; }
 }
+
+.card.highlight { outline: 3px solid var(--accent); outline-offset: 2px; transition: outline-color .3s; }
+.pop { display: flex; flex-direction: column; gap: 4px; }
+.pop-photo { height: 110px; border-radius: 8px; background: var(--bg) center/cover no-repeat; margin-bottom: 4px; }
+.pop-actions { display: flex; gap: 6px; margin: 4px 0; }
+.pop .badge-status { font-size: 11px; padding: 2px 7px; }

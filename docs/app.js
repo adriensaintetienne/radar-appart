@@ -279,13 +279,65 @@ function renderMap() {
   Object.values(S.listings).forEach((l) => {
     if (l.active === false || l.status === "rejete" || l.lat == null || S.tracking.items[l.id]?.status === "rejete") return;
     L.circleMarker([l.lat, l.lon], { radius: 7 + (l.score || 0) / 20, color: "#fff", weight: 1.5, fillColor: colors[l.status], fillOpacity: 0.9 })
-      .bindPopup(`<b>${eur(l.price)}</b> · ${l.surface || "?"} m² · score ${l.score}<br>${esc((l.title || "").slice(0, 80))}<br>
-        ${l.geo_precision === "exact" ? "" : "<i>position approximative</i><br>"}<a href="${esc(l.url)}" target="_blank">Voir l'annonce ↗</a>`)
+      .bindPopup(popupHtml(l), { minWidth: 220 })
       .addTo(group);
   });
   group.addTo(m);
   maps.mainLayer = group;
-  setTimeout(() => { m.invalidateSize(); if (group.getLayers().length) m.fitBounds(group.getBounds().pad(0.1)); }, 50);
+  if (!maps.mainPopupBound) {
+    maps.mainPopupBound = true;
+    m.on("popupopen", (e) => {
+      const el = e.popup.getElement(), box = el.querySelector(".pop");
+      if (!box) return;
+      const id = box.dataset.id;
+      el.querySelector(".pop-open").onclick = () => { m.closePopup(); openListing(id); };
+      el.querySelector(".pop-hide").onclick = async () => {
+        m.closePopup();
+        await saveTracking(id, { status: "rejete" }, "Annonce masquée — retrouvable avec le filtre « Suivi : Masquée »");
+        renderMap(); renderListings();
+      };
+    });
+  }
+  setTimeout(() => {
+    m.invalidateSize();
+    // Cadrage automatique seulement à la première ouverture (sinon on garde le zoom de l'utilisateur)
+    if (!maps.mainFitted && group.getLayers().length) { m.fitBounds(group.getBounds().pad(0.1)); maps.mainFitted = true; }
+  }, 50);
+}
+
+function popupHtml(l) {
+  const photo = (l.photos || [])[0];
+  const t = S.tracking.items[l.id]?.status;
+  return `<div class="pop" data-id="${l.id}">
+    ${photo ? `<div class="pop-photo" style="background-image:url('${esc(photo)}')"></div>` : ""}
+    <div><span class="badge-status ${l.status}">${STATUS[l.status]}</span> <b>score ${l.score ?? 0}</b>${t ? ` · ${TRACK[t]}` : ""}</div>
+    <div><b>${eur(l.price)}</b> · ${l.surface || "?"} m²${l.rooms ? ` · ${l.rooms} p.` : ""}</div>
+    <div>${esc((l.title || "").slice(0, 80))}</div>
+    ${l.geo_precision === "exact" ? "" : "<div class='muted'>position approximative</div>"}
+    <div class="pop-actions">
+      <button type="button" class="btn small pop-open">Voir la fiche</button>
+      <button type="button" class="btn danger small pop-hide">✖ Masquer</button>
+    </div>
+    <a href="${esc(l.url)}" target="_blank" rel="noopener">Annonce d'origine ↗</a>
+  </div>`;
+}
+
+/* Ouvre la fiche d'une annonce dans l'onglet Annonces, en ajustant les filtres pour qu'elle soit visible. */
+function openListing(id) {
+  const l = S.listings[id];
+  if (!l) return;
+  ui.status.add(l.status);
+  $("#f-search").value = "";
+  $("#f-track").value = S.tracking.items[id]?.status === "rejete" ? "rejete" : "";
+  if (l.active === false) $("#f-inactive").checked = true;
+  showTab("annonces");
+  renderListings();
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if (card) {
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    card.classList.add("highlight");
+    setTimeout(() => card.classList.remove("highlight"), 2500);
+  }
 }
 
 function renderZoneMap() {
