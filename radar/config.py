@@ -157,7 +157,7 @@ def save_json(path, data):
 
 def gmail_credentials():
     """Adresse et mot de passe d'application Gmail, débarrassés des espaces (y compris insécables) copiés par erreur."""
-    addr = re.sub(r"\s", "", os.environ.get("GMAIL_ADDRESS") or "")
+    addr = re.sub(r"\s", "", os.environ.get("GMAIL_ADDRESS_OVERRIDE") or os.environ.get("GMAIL_ADDRESS") or "")
     pwd = re.sub(r"\s", "", os.environ.get("GMAIL_APP_PASSWORD") or "")
     return addr, pwd
 

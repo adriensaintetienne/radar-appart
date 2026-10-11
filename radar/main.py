@@ -28,6 +28,8 @@ def prefilter(item, cfg):
 
 def run(data_dir, dry_run=False, only=None):
     cfg = load_config(data_dir)
+    if cfg.get("gmail_address"):  # adresse saisie dans la configuration : prioritaire sur le secret GitHub
+        os.environ["GMAIL_ADDRESS_OVERRIDE"] = cfg["gmail_address"]
     paths = {k: os.path.join(data_dir, f"{k}.json") for k in ("listings", "state", "tracking")}
     store = Store(load_json(paths["listings"], {"listings": {}}))
     state = load_json(paths["state"], {})
