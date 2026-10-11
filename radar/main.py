@@ -153,10 +153,18 @@ def run(data_dir, dry_run=False, only=None):
     alerts.sort(key=lambda a: (-a[0].get("score", 0)))
 
     system_msgs = health.check(state, cfg)
-    if first_run:
+    if not state.get("welcome_sent"):
         matched = sum(1 for l in store.listings.values() if l["status"] != "rejete" and l.get("active", True))
         system_msgs.insert(0, f"le radar est en route ✅ — {matched} annonce(s) correspondante(s) déjà en ligne, à voir sur le tableau de bord. "
                               "Les prochaines alertes ne concerneront que les nouveautés.")
+
+    # Messages qui n'avaient pas pu être délivrés au passage précédent : on les renvoie.
+    pending = state.get("pending", {})
+    queued = {(a[0].get("id"), a[1]) for a in alerts}
+    for lid, ev in pending.get("alerts", []):
+        if lid in store.listings and (lid, ev) not in queued:
+            alerts.append((store.listings[lid], ev))
+    system_msgs = [m for m in pending.get("system", []) if m not in system_msgs and "en route" not in m] + system_msgs
 
     # ---------- 4. Sauvegarde puis envoi
     run_summary.update(finished_at=now_iso(), alerts=len(alerts), system_messages=len(system_msgs))
@@ -164,10 +172,20 @@ def run(data_dir, dry_run=False, only=None):
     if not dry_run and (alerts or system_msgs):
         rep = notify.dispatch(cfg, alerts, system_msgs, dashboard)
         run_summary["notify"] = rep
+        delivered = rep["email_sent"] or (rep["whatsapp_sent"] > 0 and not rep["whatsapp_failed"])
+        if delivered:
+            state.pop("pending", None)
+            state["welcome_sent"] = True
+        else:
+            # Rien n'est parti (WhatsApp et email en échec) : on garde tout pour le prochain passage.
+            state["pending"] = {"alerts": [[l["id"], ev] for l, ev in alerts][-50:], "system": system_msgs[-10:]}
+            health.record(state, "notifications", False, error="aucun message n'a pu être envoyé (WhatsApp et email en échec) — nouvel essai au prochain passage")
         if rep["whatsapp_failed"]:
             health.record(state, "whatsapp", False, error="échec CallMeBot pour : " + ", ".join(rep["whatsapp_failed"]))
         elif rep["whatsapp_sent"]:
             health.record(state, "whatsapp", True, count=rep["whatsapp_sent"], info=f"{rep['whatsapp_sent']} message(s) envoyé(s)")
+        if delivered and state.get("health", {}).get("notifications"):
+            health.record(state, "notifications", True, info="messages envoyés")
     state["runs"] = (state.get("runs", []) + [run_summary])[-60:]
     save_json(paths["listings"], store.to_json())
     save_json(paths["state"], state)

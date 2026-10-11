@@ -200,3 +200,26 @@ def test_different_agency_price_is_not_a_drop():
     assert st.listings[lid]["price"] == 1050000  # prix le plus bas retenu
     _, ev = st.upsert(dict(a, price=1000000))   # la première agence baisse vraiment
     assert "price_drop" in ev and st.listings[lid]["price"] == 1000000
+
+
+def test_undelivered_messages_are_retried(tmp_path, monkeypatch):
+    """Si ni WhatsApp ni l'email ne passent, le message de bienvenue et les alertes sont renvoyés ensuite."""
+    from radar import main, notify
+    (tmp_path / "config.json").write_text(json.dumps({"sources": {"gmail": {"enabled": False}, "websearch": {"enabled": False}, "agencies": []},
+                                                      "notifications": {"whatsapp": [{"name": "T", "phone": "+33600000000", "apikey": "x"}]}}))
+    feed = [[dict(BASE, source="bienici", url="https://www.bienici.com/annonce/a-111111", ext_id="a-111111")]]
+    monkeypatch.setattr(main.bienici, "fetch", lambda cfg, st: (feed[0], {"full_listing": True, "info": "test"}))
+    up = {"ok": False}
+    sent = []
+    monkeypatch.setattr(notify, "send_whatsapp", lambda rec, text: (sent.append(text) or []) if up["ok"] else ["T"])
+    main.run(str(tmp_path))                       # 1er passage : envoi en échec
+    feed[0] = feed[0] + [dict(BASE, source="bienici", url="https://www.bienici.com/annonce/b-222222", ext_id="b-222222",
+                              surface=110, price=1050000, postcode="75020")]
+    main.run(str(tmp_path))                       # nouvelle annonce, toujours en échec
+    assert sent == []
+    up["ok"] = True
+    main.run(str(tmp_path))                       # ça repasse : tout est renvoyé
+    assert any("en route" in t for t in sent) and any("110 m²" in t for t in sent)
+    n = len(sent)
+    main.run(str(tmp_path))                       # et pas de doublon ensuite
+    assert len(sent) == n
