@@ -15,6 +15,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 from bs4 import BeautifulSoup
 
 from .. import http
+from ..config import gmail_credentials, gmail_credentials_shape
 from ..textparse import extract_all
 
 NAME = "gmail"
@@ -142,8 +143,7 @@ def parse_email_html(html, sender=""):
 
 
 def fetch(cfg, state):
-    addr = os.environ.get("GMAIL_ADDRESS")
-    pwd = os.environ.get("GMAIL_APP_PASSWORD")
+    addr, pwd = gmail_credentials()
     if not addr or not pwd:
         raise RuntimeError("GMAIL_ADDRESS / GMAIL_APP_PASSWORD non configurés (secrets GitHub)")
     st = state.setdefault("gmail", {})
@@ -152,7 +152,10 @@ def fetch(cfg, state):
         st["folder"] = os.environ.get("GMAIL_FOLDER") or "INBOX"
     last_uid = int(st.get("last_uid", 0))
     imap = imaplib.IMAP4_SSL("imap.gmail.com")
-    imap.login(addr, pwd.replace(" ", ""))
+    try:
+        imap.login(addr, pwd)
+    except imaplib.IMAP4.error as e:
+        raise RuntimeError(f"Gmail refuse la connexion ({e}) — {gmail_credentials_shape()}") from None
     # Boîte personnelle : on ne lit qu'un libellé (ex. « Radar ») et que les emails adressés à l'alias +appart.
     folder = os.environ.get("GMAIL_FOLDER") or "INBOX"
     alias = os.environ.get("GMAIL_ALIAS")

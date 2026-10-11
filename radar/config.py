@@ -2,6 +2,7 @@
 import copy
 import json
 import os
+import re
 
 DEFAULT_CONFIG = {
     "search_name": "Paris Est - achat résidence principale",
@@ -152,3 +153,18 @@ def save_json(path, data):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1, sort_keys=False)
     os.replace(tmp, path)
+
+
+def gmail_credentials():
+    """Adresse et mot de passe d'application Gmail, débarrassés des espaces (y compris insécables) copiés par erreur."""
+    addr = re.sub(r"\s", "", os.environ.get("GMAIL_ADDRESS") or "")
+    pwd = re.sub(r"\s", "", os.environ.get("GMAIL_APP_PASSWORD") or "")
+    return addr, pwd
+
+
+def gmail_credentials_shape():
+    """Description sans contenu secret, pour diagnostiquer un refus de connexion."""
+    addr, pwd = gmail_credentials()
+    return (f"adresse : {len(addr)} caractères, {'contient un +' if '+' in addr else 'sans +'}, "
+            f"{'finit par @gmail.com' if addr.lower().endswith('@gmail.com') else 'ne finit PAS par @gmail.com'} ; "
+            f"mot de passe : {len(pwd)} caractères (attendu : 16), {'lettres uniquement' if pwd.isalpha() else 'contient autre chose que des lettres'}")

@@ -6,6 +6,8 @@ from email.mime.text import MIMEText
 
 import requests
 
+from .config import gmail_credentials
+
 CALLMEBOT = "https://api.callmebot.com/whatsapp.php"
 STATUS_LABEL = {"match": "✅ Correspond", "a_verifier": "🔎 À vérifier", "negociable": "💶 Négociable"}
 EVENT_LABEL = {"new": "🏠 Nouvelle annonce", "price_drop": "📉 Baisse de prix", "relisted": "🔁 Remise en ligne"}
@@ -70,8 +72,7 @@ def send_whatsapp(recipients, text):
 
 
 def send_email(to, subject, body):
-    addr = os.environ.get("GMAIL_ADDRESS")
-    pwd = (os.environ.get("GMAIL_APP_PASSWORD") or "").replace(" ", "")
+    addr, pwd = gmail_credentials()
     if not (addr and pwd and to):
         return False
     msg = MIMEText(body, "plain", "utf-8")
