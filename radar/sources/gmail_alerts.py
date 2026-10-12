@@ -5,6 +5,7 @@ Principe : chaque lien d'annonce trouvé dans un email est identifié (portail +
 infos visibles autour du lien (prix, surface, pièces, ville) sont extraites. La fiche complète est
 ensuite consultée si le portail le permet (enrichissement).
 """
+import base64
 import email
 import imaplib
 import os
@@ -28,7 +29,7 @@ PORTALS = {
     "seloger": re.compile(r"seloger\.com/annonces?/(?:achat|investissement|viager)/[^?#]*/([A-Za-z0-9]{8,}?)(?:\.htm)?(?=[?#/]|$)"),
     "leboncoin": re.compile(r"leboncoin\.fr/(?:ad/[a-z_]+|vi|ventes_immobilieres)/(\d{6,})"),
     "pap": re.compile(r"pap\.fr/annonces/[^?#]*?-r(\d{6,})"),
-    "bienici": re.compile(r"bienici\.com/annonce/(?:[^/?#]+/)*?([a-z0-9-]*\d[a-z0-9-]{5,})(?:[/?#]|$)"),
+    "bienici": re.compile(r"bienici\.com/annonce/(?:[^/?#]+/)*?([^/?#]*\d[^/?#]*)(?:[?#]|$)"),
     "logicimmo": re.compile(r"logic-immo\.com/(?:annonces?/(?:achat|vente)/[^?#]*/([A-Za-z0-9]{8,}?)(?:\.htm)?(?=[?#/]|$)|(?:detail-vente-|annonces?/)[^?#]*?([0-9a-f]{8}-[0-9a-f-]{27}|\d{6,}))"),
     "figaro": re.compile(r"immobilier\.lefigaro\.fr/annonces/annonce-(\d{6,})"),
     "bellesdemeures": re.compile(r"bellesdemeures\.com/(?:annonces?/[^?#]*/([A-Za-z0-9]{8,}?)(?:\.htm)?(?=[?#/]|$)|(\d{6,})/detail\.htm)"),
@@ -58,7 +59,26 @@ PORTAL_DOMAINS = {
     "leboncoin.fr": "leboncoin", "pap.fr": "pap", "bienici.com": "bienici", "lefigaro.fr": "figaro",
 }
 FALLBACK_ID_RE = re.compile(r"/([A-Za-z0-9-]*\d[A-Za-z0-9-]{5,})(?:\.htm|/detail\.htm)?(?=[/?#]|$)")
-NOT_LISTING_RE = re.compile(r"/(?:compte|account|alerte|alert|recherche|search|list|aide|help|legal|cgu)", re.I)
+NOT_LISTING_RE = re.compile(r"alerte|alert|desinscri|unsubscribe|compte|account|recherche|search|aide|help|legal|cgu|favoris|connexion|login|professionnels|agence|agency", re.I)
+
+
+def _is_tracking_host(host):
+    return bool(re.match(r"(link|links|click|clic|track|trk|email|e|t|r|l|go|redirect|mail)\d*\.", host)) or ".by." in host
+
+
+def _decode_embedded_url(url):
+    """Certains liens de suivi contiennent l'adresse cible encodée en base64 dans leur chemin."""
+    for seg in urlparse(url).path.split("/"):
+        if len(seg) < 40:
+            continue
+        try:
+            dec = base64.urlsafe_b64decode(seg + "=" * (-len(seg) % 4)).decode("utf-8", "ignore")
+        except Exception:
+            continue
+        m = re.search(r"https?://[^\s\"'<>]+", dec)
+        if m and identify(m.group(0))[0]:
+            return m.group(0)
+    return None
 
 
 def identify(url):
@@ -68,6 +88,10 @@ def identify(url):
             return portal, next(g for g in m.groups() if g)
     host = urlparse(url).netloc.lower()
     portal = next((p for d, p in PORTAL_DOMAINS.items() if host.endswith(d)), None)
+    if portal and re.match(r"(advertisement|ads?|pub|banner|promo)\.", host):
+        portal = None  # bannière publicitaire
+    if portal and _is_tracking_host(host):
+        portal = None  # lien de suivi (link.bienici.com, click.by.seloger.com…) : à résoudre d'abord
     if portal and not NOT_LISTING_RE.search(urlparse(url).path):
         ids = FALLBACK_ID_RE.findall(urlparse(url).path)
         if ids:
@@ -86,8 +110,11 @@ def _unwrap(url):
             v = unquote(v)
             if v.startswith("http") and identify(v)[0]:
                 return v
+    embedded = _decode_embedded_url(url)
+    if embedded:
+        return embedded
     host = urlparse(url).netloc.lower()
-    if not any(h in host for h in TRACKING_HOSTS):
+    if not any(h in host for h in TRACKING_HOSTS) and not _is_tracking_host(host):
         return url
     if url in _redirect_cache:
         return _redirect_cache[url]
@@ -185,7 +212,8 @@ def parse_email_html(html, sender=""):
         }
     for r in results.values():
         r.pop("_text", None)
-    return list(results.values())
+    # Une « annonce » sans prix ni surface est un lien parasite (bannière, rappel de recherche…)
+    return [r for r in results.values() if r.get("price") or r.get("surface")]
 
 
 def fetch(cfg, state):

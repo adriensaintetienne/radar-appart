@@ -283,3 +283,17 @@ def test_seloger_tracking_links(monkeypatch):
     assert by["27B5QTKEJLCJ"]["postcode"] == "75011" and by["26A4PSJDIKBI"]["postcode"] == "93260"
     assert not any("Z1" in c for c in calls)  # lien de désabonnement jamais suivi
     assert len(calls) <= 4                    # une seule résolution (ou presque) par annonce
+
+
+def test_bienici_tracking_links_with_embedded_url():
+    import base64
+    def link(target):
+        return "https://link.bienici.com/lnk/AWEAAKaD/" + base64.urlsafe_b64encode(target.encode()).decode().rstrip("=")
+    html = f"""<table>
+    <tr><td><a href="{link('https://www.bienici.com/mon-alerte/11f2ba?x=1')}">Acheter à Paris 11e - 800k à 1,3m € - 90 m² min</a></td></tr>
+    <tr><td><table><tr><td><a href="{link('https://www.bienici.com/annonce/netty-robert-appt-6201?fromSavedSearchId=1')}">Appartement 4 pièces 90 m² 75020 Paris 20e 895 000 €</a></td></tr>
+      <tr><td><a href="{link('https://www.bienici.com/annonce/netty-robert-appt-6201?at_link=Voir')}">Voir l’annonce ></a></td></tr></table></td></tr>
+    <tr><td><a href="https://advertisement.bienici.com/redirect/mail-buy-w728h90-1">pub</a></td></tr>
+    </table>"""
+    items = gmail_alerts.parse_email_html(html)
+    assert [(i["ext_id"], i["price"], i["postcode"]) for i in items] == [("netty-robert-appt-6201", 895000, "75020")]
