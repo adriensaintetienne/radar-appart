@@ -86,7 +86,10 @@ def _to_item(ad):
         "postcode": ad.get("postalCode"),
         "lat": pos.get("lat"),
         "lon": pos.get("lon"),
-        "geo_precision": "exact" if precise else ("approx" if pos else None),
+        # centre de l'arrondissement ou flou ≥ 500 m : inutilisable pour la zone, le texte prendra le relais
+        "geo_precision": "exact" if precise else (
+            "arrondissement" if blur.get("type") == "cityOrArrondissement" or (blur.get("radius") or 0) >= 500
+            else ("approx" if pos else None)),
         "property_type": ad.get("propertyType"),
         "new_build": bool(ad.get("newProperty")),
         "build_year": _num(ad.get("yearOfConstruction")),

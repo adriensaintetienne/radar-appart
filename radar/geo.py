@@ -94,6 +94,76 @@ def geocode(query, postcode=None):
     return None
 
 
+_PLACES = None
+# Noms courants qui sont aussi des mots ordinaires : on exige un contexte (« rue de Paradis », « métro Nation »…)
+RISKY_PLACES = {"paradis", "temple", "nation", "combat", "amerique", "danube", "cadet", "avron", "martyrs", "simplon",
+                "couronnes", "aligre", "flandre", "reunion", "charonne", "roquette", "saint maur", "enghien", "riquet",
+                "ourcq", "crimee", "belleville", "voltaire", "jourdain", "lancry", "bastille", "goncourt", "botzaris",
+                "pyrenees", "boulets", "picpus", "bel air", "arts et metiers", "bonne nouvelle", "porte saint denis"}
+CONTEXT_RE = r"(?:rue|quartier|secteur|metro|station|place|proche|pres|boulevard|bd|avenue|av|square|canal|parc|mairie|marche|cite|passage|du|de la|des|de l|d)\s+(?:de |du |des |la |l )?$"
+PLACE_WORDS_RE = re.compile(r"[^a-z0-9]+")
+
+
+def _key(text):
+    """Normalisation pour comparer des noms de lieux : minuscules, sans accents, tirets/apostrophes = espaces."""
+    from .textparse import normalize
+    return " " + PLACE_WORDS_RE.sub(" ", normalize(text)).strip() + " "
+
+
+def places():
+    global _PLACES
+    if _PLACES is None:
+        import json, os
+        path = os.path.join(os.path.dirname(__file__), "data", "places_paris.json")
+        raw = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+        # Arrondissement de chaque lieu : celui du quartier administratif le plus proche
+        quarters = [v for v in raw.values() if v.get("kind") == "quartier"]
+        for v in raw.values():
+            if "arr" not in v and quarters:
+                v["arr"] = min(quarters, key=lambda q: (q["lat"] - v["lat"]) ** 2 + ((q["lon"] - v["lon"]) * 0.66) ** 2)["arr"]
+        # du plus long au plus court : « Canal Saint-Martin » avant « Saint-Martin »
+        _PLACES = sorted(((_key(n).strip(), n, v) for n, v in raw.items()), key=lambda x: -len(x[0]))
+    return _PLACES
+
+
+def find_place(text, arrondissements=None):
+    """Premier lieu connu cité dans le texte (limité aux arrondissements donnés). Renvoie (position, nom, lat, lon) ou None."""
+    k = _key(text)
+    best = None
+    for key, name, v in places():
+        if arrondissements and v.get("arr") not in arrondissements:
+            continue
+        start = 0
+        while True:
+            i = k.find(" " + key + " ", start)
+            if i < 0:
+                break
+            before, after = k[max(0, i - 30):i + 1], k[i + len(key) + 1:i + len(key) + 30]
+            if (key in RISKY_PLACES and not re.search(CONTEXT_RE, before)) or \
+                    re.search(r"agence|cabinet|groupe", before) or re.match(r"\s*(immo|immobilier|transaction|conseil)", after):
+                start = i + 1  # mot ordinaire, ou nom d'agence (« Agence des Enfants Rouges »)
+                continue
+            if best is None or i < best[0]:
+                best = (i, name, v["lat"], v["lon"])
+            break
+    return best
+
+
+def _place_from_text(listing):
+    """Position d'après un lieu (quartier, station, rue) cité dans le titre, puis dans la description."""
+    title, desc = listing.get("title") or "", listing.get("description") or ""
+    pc = listing.get("postcode") or ""
+    arrs = {int(pc[-2:])} if pc.startswith("75") and pc[-2:].isdigit() and 1 <= int(pc[-2:]) <= 20 else None
+    for text in (title, desc[:3000]):
+        hit = find_place(text, arrs)
+        if hit:
+            return hit[2], hit[3], hit[1]
+    return None
+
+
+QUARTER_TOLERANCE_M = 400  # un quartier cité dans le texte ne donne qu'une position à quelques centaines de mètres près
+
+
 def locate(listing, zone, postcodes, tolerance_m=0):
     """Calcule la situation géographique de l'annonce.
 
@@ -103,26 +173,39 @@ def locate(listing, zone, postcodes, tolerance_m=0):
     lat, lon = listing.get("lat"), listing.get("lon")
     precision = listing.get("geo_precision")
 
-    # Coordonnées absentes : tenter un géocodage à partir d'un nom de rue dans le texte.
-    if (lat is None or lon is None) and zone_defined(zone) and not listing.get("geo_tried"):
-        listing["geo_tried"] = True
-        street = extract_street((listing.get("title") or "") + " " + (listing.get("description") or ""))
-        if street:
-            res = geocode(f"{street} Paris", pc)
-            if res:
-                lat, lon, precision = res
-                listing.update(lat=lat, lon=lon, geo_precision=precision)
+    # Pas de position fiable (aucune, ou seulement le centre de l'arrondissement) : on lit le texte.
+    if precision in (None, "arrondissement", "quartier") or lat is None:
+        hit = _place_from_text(listing)
+        if hit:
+            lat, lon, name = hit
+            precision = "quartier"
+            listing.update(lat=lat, lon=lon, geo_precision="quartier", geo_place=name)
+        elif zone_defined(zone) and not listing.get("geo_tried"):
+            # Sinon, un nom de rue géocodé par la Base Adresse Nationale
+            listing["geo_tried"] = True
+            street = extract_street(listing.get("title", "") + " " + (listing.get("description") or ""))
+            if street:
+                res = geocode(f"{street} Paris", pc)
+                if res:
+                    lat, lon, precision = res
+                    listing.update(lat=lat, lon=lon, geo_precision=precision, geo_place=street)
+        if precision == "arrondissement":
+            lat = lon = None  # le centre de l'arrondissement ne dit rien de la zone
 
     if pc and postcodes and pc not in postcodes:
         return "out", f"hors secteur ({pc})"
 
+    where = f" d'après « {listing['geo_place']} »" if precision == "quartier" and listing.get("geo_place") else ""
     if lat is not None and lon is not None and zone_defined(zone):
         if in_zone(lat, lon, zone):
-            return ("in", "dans la zone") if precision in ("exact", "street") else ("approx", "dans la zone (position approximative)")
+            if precision in ("exact", "street"):
+                return "in", "dans la zone"
+            return "approx", f"dans la zone (position approximative{where})"
         d = distance_to_zone_m(lat, lon, zone)
-        if tolerance_m and d <= tolerance_m:
-            return "edge", f"en bordure de zone (~{int(d)} m, position {'précise' if precision in ('exact', 'street') else 'approximative'})"
-        return "out", f"hors zone dessinée (~{int(d)} m)"
+        tol = max(tolerance_m or 0, QUARTER_TOLERANCE_M if precision == "quartier" else 0)
+        if tol and d <= tol:
+            return "edge", f"en bordure de zone (~{int(d)} m{where})"
+        return "out", f"hors zone dessinée (~{int(d)} m{where})"
 
     if pc and pc in postcodes:
         if zone_defined(zone):

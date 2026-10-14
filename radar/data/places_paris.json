@@ -1,0 +1,1032 @@
+{
+ "Alexandre Dumas": {
+  "kind": "lieu",
+  "lat": 48.85634,
+  "lon": 2.3944352
+ },
+ "Aligre": {
+  "kind": "lieu",
+  "lat": 48.848901,
+  "lon": 2.3783195
+ },
+ "Amérique": {
+  "arr": 19,
+  "kind": "quartier",
+  "lat": 48.88163816729657,
+  "lon": 2.3954401666237373
+ },
+ "Archives": {
+  "arr": 3,
+  "kind": "quartier",
+  "lat": 48.859192412713874,
+  "lon": 2.3632050573309638
+ },
+ "Arsenal": {
+  "arr": 4,
+  "kind": "quartier",
+  "lat": 48.851585175021285,
+  "lon": 2.3647679538731117
+ },
+ "Arts et Métiers": {
+  "kind": "lieu",
+  "lat": 48.8654718,
+  "lon": 2.3561116
+ },
+ "Arts-et-Métiers": {
+  "arr": 3,
+  "kind": "quartier",
+  "lat": 48.86647028948414,
+  "lon": 2.3570831310567835
+ },
+ "Auteuil": {
+  "arr": 16,
+  "kind": "quartier",
+  "lat": 48.850622342726865,
+  "lon": 2.252276907538065
+ },
+ "Avron": {
+  "kind": "lieu",
+  "lat": 48.851501,
+  "lon": 2.3982195
+ },
+ "Barbès": {
+  "kind": "lieu",
+  "lat": 48.8839388,
+  "lon": 2.3493707
+ },
+ "Bassin de la Villette": {
+  "kind": "lieu",
+  "lat": 48.8843439,
+  "lon": 2.3694611
+ },
+ "Bastille": {
+  "kind": "lieu",
+  "lat": 48.852987,
+  "lon": 2.3688579
+ },
+ "Batignolles": {
+  "arr": 17,
+  "kind": "quartier",
+  "lat": 48.888481513920595,
+  "lon": 2.313856169006357
+ },
+ "Bel-Air": {
+  "arr": 12,
+  "kind": "quartier",
+  "lat": 48.8379956461218,
+  "lon": 2.4331784419569793
+ },
+ "Belleville": {
+  "arr": 20,
+  "kind": "quartier",
+  "lat": 48.87153120058614,
+  "lon": 2.3875492398498035
+ },
+ "Bercy": {
+  "arr": 12,
+  "kind": "quartier",
+  "lat": 48.835209049865114,
+  "lon": 2.3862100842120184
+ },
+ "Bolivar": {
+  "kind": "lieu",
+  "lat": 48.8809263,
+  "lon": 2.3739077
+ },
+ "Bonne Nouvelle": {
+  "kind": "lieu",
+  "lat": 48.8705324,
+  "lon": 2.3487457
+ },
+ "Bonne-Nouvelle": {
+  "arr": 2,
+  "kind": "quartier",
+  "lat": 48.8671501183107,
+  "lon": 2.3500801904088187
+ },
+ "Botzaris": {
+  "kind": "lieu",
+  "lat": 48.879514,
+  "lon": 2.3885871
+ },
+ "Boulets": {
+  "kind": "lieu",
+  "lat": 48.8525808,
+  "lon": 2.3887914
+ },
+ "Boulevard Richard-Lenoir": {
+  "kind": "lieu",
+  "lat": 48.8633912,
+  "lon": 2.3718194
+ },
+ "Bréguet-Sabin": {
+  "kind": "lieu",
+  "lat": 48.8566358,
+  "lon": 2.3704159
+ },
+ "Butte Bergeyre": {
+  "kind": "lieu",
+  "lat": 48.8772681,
+  "lon": 2.3753155
+ },
+ "Buttes-Chaumont": {
+  "kind": "lieu",
+  "lat": 48.8783961,
+  "lon": 2.3812008
+ },
+ "Cadet": {
+  "kind": "lieu",
+  "lat": 48.8760078,
+  "lon": 2.3444767
+ },
+ "Canal Saint-Martin": {
+  "kind": "lieu",
+  "lat": 48.8689561,
+  "lon": 2.3671691
+ },
+ "Chaillot": {
+  "arr": 16,
+  "kind": "quartier",
+  "lat": 48.86843361445447,
+  "lon": 2.2916790427412166
+ },
+ "Champs-Elysées": {
+  "arr": 8,
+  "kind": "quartier",
+  "lat": 48.867074492185395,
+  "lon": 2.3086516846814
+ },
+ "Charonne": {
+  "arr": 20,
+  "kind": "quartier",
+  "lat": 48.854760283035255,
+  "lon": 2.407430328235969
+ },
+ "Chaussée-d'Antin": {
+  "arr": 9,
+  "kind": "quartier",
+  "lat": 48.87354738020911,
+  "lon": 2.332268868869704
+ },
+ "Chemin Vert": {
+  "kind": "lieu",
+  "lat": 48.8574434,
+  "lon": 2.3681408
+ },
+ "Château d'Eau": {
+  "kind": "lieu",
+  "lat": 48.8728888,
+  "lon": 2.3563528
+ },
+ "Château-Landon": {
+  "kind": "lieu",
+  "lat": 48.8789087,
+  "lon": 2.3624266
+ },
+ "Clignancourt": {
+  "arr": 18,
+  "kind": "quartier",
+  "lat": 48.89166759106752,
+  "lon": 2.3459787545931863
+ },
+ "Colonel Fabien": {
+  "kind": "lieu",
+  "lat": 48.8774137,
+  "lon": 2.3710017
+ },
+ "Combat": {
+  "arr": 19,
+  "kind": "quartier",
+  "lat": 48.87863907572485,
+  "lon": 2.380127281829295
+ },
+ "Couronnes": {
+  "kind": "lieu",
+  "lat": 48.8690533,
+  "lon": 2.3804541
+ },
+ "Crimée": {
+  "kind": "lieu",
+  "lat": 48.8908513,
+  "lon": 2.3773681
+ },
+ "Croulebarbe": {
+  "arr": 13,
+  "kind": "quartier",
+  "lat": 48.83373367612219,
+  "lon": 2.3476730460658106
+ },
+ "Danube": {
+  "kind": "lieu",
+  "lat": 48.8818204,
+  "lon": 2.3942224
+ },
+ "Ecole-Militaire": {
+  "arr": 7,
+  "kind": "quartier",
+  "lat": 48.85035926154756,
+  "lon": 2.3110309362657557
+ },
+ "Enfants-Rouges": {
+  "arr": 3,
+  "kind": "quartier",
+  "lat": 48.86388739200144,
+  "lon": 2.363123300986952
+ },
+ "Enghien": {
+  "kind": "lieu",
+  "lat": 48.8718538,
+  "lon": 2.3518383
+ },
+ "Epinettes": {
+  "arr": 17,
+  "kind": "quartier",
+  "lat": 48.8949426537908,
+  "lon": 2.321118743705154
+ },
+ "Europe": {
+  "arr": 8,
+  "kind": "quartier",
+  "lat": 48.87814767585099,
+  "lon": 2.3171746113048903
+ },
+ "Faidherbe - Chaligny": {
+  "kind": "lieu",
+  "lat": 48.8501609,
+  "lon": 2.3842222
+ },
+ "Faidherbe-Chaligny": {
+  "kind": "lieu",
+  "lat": 48.8501609,
+  "lon": 2.3842222
+ },
+ "Faubourg Saint-Antoine": {
+  "kind": "lieu",
+  "lat": 48.8507175,
+  "lon": 2.378531
+ },
+ "Faubourg-Montmartre": {
+  "arr": 9,
+  "kind": "quartier",
+  "lat": 48.873934691758095,
+  "lon": 2.343252579473346
+ },
+ "Faubourg-du-Roule": {
+  "arr": 8,
+  "kind": "quartier",
+  "lat": 48.874135575605415,
+  "lon": 2.3041188097211407
+ },
+ "Filles du Calvaire": {
+  "kind": "lieu",
+  "lat": 48.8633194,
+  "lon": 2.3666323
+ },
+ "Flandre": {
+  "kind": "lieu",
+  "lat": 48.8913791,
+  "lon": 2.3773206
+ },
+ "Folie-Méricourt": {
+  "arr": 11,
+  "kind": "quartier",
+  "lat": 48.86740319007272,
+  "lon": 2.3729648249267643
+ },
+ "Gaillon": {
+  "arr": 2,
+  "kind": "quartier",
+  "lat": 48.869306638088744,
+  "lon": 2.3334318076581146
+ },
+ "Gambetta": {
+  "kind": "lieu",
+  "lat": 48.8649327,
+  "lon": 2.3980541
+ },
+ "Gare": {
+  "arr": 13,
+  "kind": "quartier",
+  "lat": 48.82752745777257,
+  "lon": 2.3723977369189355
+ },
+ "Gare de Lyon": {
+  "kind": "lieu",
+  "lat": 48.8436635,
+  "lon": 2.3744869
+ },
+ "Gare de l'Est": {
+  "kind": "lieu",
+  "lat": 48.8770979,
+  "lon": 2.3594905
+ },
+ "Gare du Nord": {
+  "kind": "lieu",
+  "lat": 48.8795666,
+  "lon": 2.3572124
+ },
+ "Goncourt": {
+  "kind": "lieu",
+  "lat": 48.8699854,
+  "lon": 2.3710671
+ },
+ "Goutte-d'Or": {
+  "arr": 18,
+  "kind": "quartier",
+  "lat": 48.89213818760241,
+  "lon": 2.355536163296278
+ },
+ "Grandes-Carrières": {
+  "arr": 18,
+  "kind": "quartier",
+  "lat": 48.89257777114592,
+  "lon": 2.334363089913081
+ },
+ "Grands Boulevards": {
+  "kind": "lieu",
+  "lat": 48.8714412,
+  "lon": 2.3434953
+ },
+ "Grenelle": {
+  "arr": 15,
+  "kind": "quartier",
+  "lat": 48.850171655497846,
+  "lon": 2.291852642697574
+ },
+ "Gros-Caillou": {
+  "arr": 7,
+  "kind": "quartier",
+  "lat": 48.85829990387876,
+  "lon": 2.3015415556941874
+ },
+ "Halles": {
+  "arr": 1,
+  "kind": "quartier",
+  "lat": 48.86228910809422,
+  "lon": 2.3448988583110166
+ },
+ "Haut Marais": {
+  "kind": "lieu",
+  "lat": 48.8641557,
+  "lon": 2.3576849
+ },
+ "Hauteville": {
+  "kind": "lieu",
+  "lat": 48.8754618,
+  "lon": 2.3509487
+ },
+ "Hôpital Lariboisière": {
+  "kind": "lieu",
+  "lat": 48.8829453,
+  "lon": 2.3530696
+ },
+ "Hôpital Saint-Louis": {
+  "kind": "lieu",
+  "lat": 48.8738275,
+  "lon": 2.3677007
+ },
+ "Hôpital-Saint-Louis": {
+  "arr": 10,
+  "kind": "quartier",
+  "lat": 48.876008290020586,
+  "lon": 2.36812301788768
+ },
+ "Invalides": {
+  "arr": 7,
+  "kind": "quartier",
+  "lat": 48.858514966137854,
+  "lon": 2.3164447403399206
+ },
+ "Jacques Bonsergent": {
+  "kind": "lieu",
+  "lat": 48.8711191,
+  "lon": 2.3607546
+ },
+ "Jardin-des-Plantes": {
+  "arr": 5,
+  "kind": "quartier",
+  "lat": 48.84194019337512,
+  "lon": 2.356893889624744
+ },
+ "Jaurès": {
+  "kind": "lieu",
+  "lat": 48.8825949,
+  "lon": 2.3703263
+ },
+ "Javel": {
+  "arr": 15,
+  "kind": "quartier",
+  "lat": 48.83906040108164,
+  "lon": 2.2780763469189345
+ },
+ "Jourdain": {
+  "kind": "lieu",
+  "lat": 48.8750944,
+  "lon": 2.38933
+ },
+ "La Chapelle": {
+  "arr": 18,
+  "kind": "quartier",
+  "lat": 48.894012169582226,
+  "lon": 2.3643867790293243
+ },
+ "Lancry": {
+  "kind": "lieu",
+  "lat": 48.8722213,
+  "lon": 2.3628938
+ },
+ "Lariboisière": {
+  "kind": "lieu",
+  "lat": 48.8829453,
+  "lon": 2.3530696
+ },
+ "Laumière": {
+  "kind": "lieu",
+  "lat": 48.8851647,
+  "lon": 2.3794369
+ },
+ "Ledru-Rollin": {
+  "kind": "lieu",
+  "lat": 48.8512945,
+  "lon": 2.3760274
+ },
+ "Louis Blanc": {
+  "kind": "lieu",
+  "lat": 48.8813308,
+  "lon": 2.3653555
+ },
+ "Léon Blum": {
+  "kind": "lieu",
+  "lat": 48.8579207,
+  "lon": 2.3804406
+ },
+ "Madeleine": {
+  "arr": 8,
+  "kind": "quartier",
+  "lat": 48.87126549302095,
+  "lon": 2.320053028649194
+ },
+ "Mail": {
+  "arr": 2,
+  "kind": "quartier",
+  "lat": 48.868008337402706,
+  "lon": 2.3446991274274604
+ },
+ "Mairie du 10e arrondissement": {
+  "kind": "lieu",
+  "lat": 48.8718013,
+  "lon": 2.3577862
+ },
+ "Mairie du Xe": {
+  "kind": "lieu",
+  "lat": 48.8718013,
+  "lon": 2.3577862
+ },
+ "Maison-Blanche": {
+  "arr": 13,
+  "kind": "quartier",
+  "lat": 48.82312780567426,
+  "lon": 2.352433149542824
+ },
+ "Maraîchers": {
+  "kind": "lieu",
+  "lat": 48.8527267,
+  "lon": 2.4061303
+ },
+ "Marcadet - Poissonniers": {
+  "kind": "lieu",
+  "lat": 48.8911394,
+  "lon": 2.3497396
+ },
+ "Martyrs": {
+  "kind": "lieu",
+  "lat": 48.8778446,
+  "lon": 2.3395219
+ },
+ "Monnaie": {
+  "arr": 6,
+  "kind": "quartier",
+  "lat": 48.85438440363996,
+  "lon": 2.340035371130514
+ },
+ "Montholon": {
+  "kind": "lieu",
+  "lat": 48.8769919,
+  "lon": 2.3464947
+ },
+ "Montparnasse": {
+  "arr": 14,
+  "kind": "quartier",
+  "lat": 48.8376230959726,
+  "lon": 2.331783822887114
+ },
+ "Mouzaïa": {
+  "kind": "lieu",
+  "lat": 48.8799719,
+  "lon": 2.3990163
+ },
+ "Muette": {
+  "arr": 16,
+  "kind": "quartier",
+  "lat": 48.86327454383974,
+  "lon": 2.259935831704838
+ },
+ "Ménilmontant": {
+  "kind": "lieu",
+  "lat": 48.8667039,
+  "lon": 2.3833464
+ },
+ "Nation": {
+  "kind": "lieu",
+  "lat": 48.8476792,
+  "lon": 2.3955176
+ },
+ "Necker": {
+  "arr": 15,
+  "kind": "quartier",
+  "lat": 48.84271125032415,
+  "lon": 2.3107774536393966
+ },
+ "Notre-Dame": {
+  "arr": 4,
+  "kind": "quartier",
+  "lat": 48.852895586218004,
+  "lon": 2.3527750121216795
+ },
+ "Notre-Dame-des-Champs": {
+  "arr": 6,
+  "kind": "quartier",
+  "lat": 48.84642759400415,
+  "lon": 2.327356878234607
+ },
+ "Oberkampf": {
+  "kind": "lieu",
+  "lat": 48.8641124,
+  "lon": 2.3694232
+ },
+ "Odéon": {
+  "arr": 6,
+  "kind": "quartier",
+  "lat": 48.847800629292664,
+  "lon": 2.3363388275876775
+ },
+ "Ourcq": {
+  "kind": "lieu",
+  "lat": 48.8870772,
+  "lon": 2.38664
+ },
+ "Palais-Royal": {
+  "arr": 1,
+  "kind": "quartier",
+  "lat": 48.86465997810256,
+  "lon": 2.3363089189653063
+ },
+ "Paradis": {
+  "kind": "lieu",
+  "lat": 48.8745688,
+  "lon": 2.3544262
+ },
+ "Parc de la Villette": {
+  "kind": "lieu",
+  "lat": 48.8948898,
+  "lon": 2.3884384
+ },
+ "Parc-de-Montsouris": {
+  "arr": 14,
+  "kind": "quartier",
+  "lat": 48.823452771575106,
+  "lon": 2.337070179863054
+ },
+ "Parmentier": {
+  "kind": "lieu",
+  "lat": 48.8653571,
+  "lon": 2.3739035
+ },
+ "Pelleport": {
+  "kind": "lieu",
+  "lat": 48.8680997,
+  "lon": 2.4013152
+ },
+ "Petit-Montrouge": {
+  "arr": 14,
+  "kind": "quartier",
+  "lat": 48.82665262554388,
+  "lon": 2.3264369992249008
+ },
+ "Philippe Auguste": {
+  "kind": "lieu",
+  "lat": 48.8582443,
+  "lon": 2.3901626
+ },
+ "Picpus": {
+  "arr": 12,
+  "kind": "quartier",
+  "lat": 48.830359242366505,
+  "lon": 2.428826815083849
+ },
+ "Pigalle": {
+  "kind": "lieu",
+  "lat": 48.8822982,
+  "lon": 2.3380899
+ },
+ "Place Léon Blum": {
+  "kind": "lieu",
+  "lat": 48.8579207,
+  "lon": 2.3804406
+ },
+ "Place Sainte-Marthe": {
+  "kind": "lieu",
+  "lat": 48.8740684,
+  "lon": 2.3725072
+ },
+ "Place de la République": {
+  "kind": "lieu",
+  "lat": 48.8675421,
+  "lon": 2.3639583
+ },
+ "Place des Fêtes": {
+  "kind": "lieu",
+  "lat": 48.8767438,
+  "lon": 2.3929935
+ },
+ "Place-Vendôme": {
+  "arr": 1,
+  "kind": "quartier",
+  "lat": 48.867018590627694,
+  "lon": 2.328581664931248
+ },
+ "Plaine de Monceaux": {
+  "arr": 17,
+  "kind": "quartier",
+  "lat": 48.88504369140323,
+  "lon": 2.302909824651906
+ },
+ "Plaisance": {
+  "arr": 14,
+  "kind": "quartier",
+  "lat": 48.83031704260011,
+  "lon": 2.315304931573413
+ },
+ "Poissonnière": {
+  "kind": "lieu",
+  "lat": 48.8770105,
+  "lon": 2.3482622
+ },
+ "Pont-de-Flandre": {
+  "arr": 19,
+  "kind": "quartier",
+  "lat": 48.89555577457166,
+  "lon": 2.384777229270242
+ },
+ "Porte Saint-Denis": {
+  "kind": "lieu",
+  "lat": 48.8697934,
+  "lon": 2.3526863
+ },
+ "Porte Saint-Martin": {
+  "kind": "lieu",
+  "lat": 48.8691459,
+  "lon": 2.3556515
+ },
+ "Porte de Bagnolet": {
+  "kind": "lieu",
+  "lat": 48.8646027,
+  "lon": 2.407183
+ },
+ "Porte de Montreuil": {
+  "kind": "lieu",
+  "lat": 48.8535352,
+  "lon": 2.4106565
+ },
+ "Porte de Pantin": {
+  "kind": "lieu",
+  "lat": 48.8886574,
+  "lon": 2.3926771
+ },
+ "Porte-Dauphine": {
+  "arr": 16,
+  "kind": "quartier",
+  "lat": 48.871765634282355,
+  "lon": 2.2719177404675657
+ },
+ "Porte-Saint-Denis": {
+  "arr": 10,
+  "kind": "quartier",
+  "lat": 48.87361766097465,
+  "lon": 2.352282894951218
+ },
+ "Porte-Saint-Martin": {
+  "arr": 10,
+  "kind": "quartier",
+  "lat": 48.87124465089237,
+  "lon": 2.3615036473450113
+ },
+ "Pré-Saint-Gervais": {
+  "kind": "lieu",
+  "lat": 48.8802778,
+  "lon": 2.3988805
+ },
+ "Pyrénées": {
+  "kind": "lieu",
+  "lat": 48.8738565,
+  "lon": 2.3852638
+ },
+ "Père Lachaise": {
+  "kind": "lieu",
+  "lat": 48.8611296,
+  "lon": 2.3940087
+ },
+ "Père-Lachaise": {
+  "arr": 20,
+  "kind": "quartier",
+  "lat": 48.86371948395739,
+  "lon": 2.395272820760115
+ },
+ "Quinze-Vingts": {
+  "arr": 12,
+  "kind": "quartier",
+  "lat": 48.84691594405347,
+  "lon": 2.374401626479208
+ },
+ "Reuilly - Diderot": {
+  "kind": "lieu",
+  "lat": 48.8473574,
+  "lon": 2.3867982
+ },
+ "Reuilly-Diderot": {
+  "kind": "lieu",
+  "lat": 48.8473574,
+  "lon": 2.3867982
+ },
+ "Richard-Lenoir": {
+  "kind": "lieu",
+  "lat": 48.8633912,
+  "lon": 2.3718194
+ },
+ "Riquet": {
+  "kind": "lieu",
+  "lat": 48.8884812,
+  "lon": 2.3742226
+ },
+ "Rochechouart": {
+  "arr": 9,
+  "kind": "quartier",
+  "lat": 48.87981191977869,
+  "lon": 2.3448612910024424
+ },
+ "Roquette": {
+  "arr": 11,
+  "kind": "quartier",
+  "lat": 48.85706404083103,
+  "lon": 2.380364061726767
+ },
+ "Rue Saint-Blaise": {
+  "kind": "lieu",
+  "lat": 48.858283,
+  "lon": 2.4067414
+ },
+ "Rue Saint-Maur": {
+  "kind": "lieu",
+  "lat": 48.8643964,
+  "lon": 2.3786389
+ },
+ "Rue d'Enghien": {
+  "kind": "lieu",
+  "lat": 48.8718538,
+  "lon": 2.3518383
+ },
+ "Rue d'Hauteville": {
+  "kind": "lieu",
+  "lat": 48.8754618,
+  "lon": 2.3509487
+ },
+ "Rue de Flandre": {
+  "kind": "lieu",
+  "lat": 48.8913791,
+  "lon": 2.3773206
+ },
+ "Rue de Lancry": {
+  "kind": "lieu",
+  "lat": 48.8722213,
+  "lon": 2.3628938
+ },
+ "Rue de Paradis": {
+  "kind": "lieu",
+  "lat": 48.8745688,
+  "lon": 2.3544262
+ },
+ "Rue de la Roquette": {
+  "kind": "lieu",
+  "lat": 48.8595847,
+  "lon": 2.3878015
+ },
+ "Rue de la Réunion": {
+  "kind": "lieu",
+  "lat": 48.8546128,
+  "lon": 2.4020424
+ },
+ "Rue des Boulets": {
+  "kind": "lieu",
+  "lat": 48.8525808,
+  "lon": 2.3887914
+ },
+ "Rue des Martyrs": {
+  "kind": "lieu",
+  "lat": 48.8778446,
+  "lon": 2.3395219
+ },
+ "République": {
+  "kind": "lieu",
+  "lat": 48.8675421,
+  "lon": 2.3639583
+ },
+ "Réunion": {
+  "kind": "lieu",
+  "lat": 48.8546128,
+  "lon": 2.4020424
+ },
+ "Saint-Ambroise": {
+  "arr": 11,
+  "kind": "quartier",
+  "lat": 48.86234502354463,
+  "lon": 2.376118055918989
+ },
+ "Saint-Blaise": {
+  "kind": "lieu",
+  "lat": 48.858283,
+  "lon": 2.4067414
+ },
+ "Saint-Fargeau": {
+  "arr": 20,
+  "kind": "quartier",
+  "lat": 48.87103473909125,
+  "lon": 2.406171530151038
+ },
+ "Saint-Georges": {
+  "arr": 9,
+  "kind": "quartier",
+  "lat": 48.87993433878255,
+  "lon": 2.3328501965554715
+ },
+ "Saint-Germain-des-Prés": {
+  "arr": 6,
+  "kind": "quartier",
+  "lat": 48.85528871996157,
+  "lon": 2.3336568680904577
+ },
+ "Saint-Germain-l'Auxerrois": {
+  "arr": 1,
+  "kind": "quartier",
+  "lat": 48.86065013520993,
+  "lon": 2.3349103292801994
+ },
+ "Saint-Gervais": {
+  "arr": 4,
+  "kind": "quartier",
+  "lat": 48.85571865089275,
+  "lon": 2.358162333852766
+ },
+ "Saint-Lambert": {
+  "arr": 15,
+  "kind": "quartier",
+  "lat": 48.83429362836976,
+  "lon": 2.296919974448867
+ },
+ "Saint-Maur": {
+  "kind": "lieu",
+  "lat": 48.8643964,
+  "lon": 2.3786389
+ },
+ "Saint-Merri": {
+  "arr": 4,
+  "kind": "quartier",
+  "lat": 48.85852137232379,
+  "lon": 2.3516669671389687
+ },
+ "Saint-Sébastien - Froissart": {
+  "kind": "lieu",
+  "lat": 48.8611816,
+  "lon": 2.367234
+ },
+ "Saint-Sébastien-Froissart": {
+  "kind": "lieu",
+  "lat": 48.8611816,
+  "lon": 2.367234
+ },
+ "Saint-Thomas-d'Aquin": {
+  "arr": 7,
+  "kind": "quartier",
+  "lat": 48.85526326937375,
+  "lon": 2.3255876525808024
+ },
+ "Saint-Victor": {
+  "arr": 5,
+  "kind": "quartier",
+  "lat": 48.84766363545046,
+  "lon": 2.354093153377686
+ },
+ "Saint-Vincent-de-Paul": {
+  "arr": 10,
+  "kind": "quartier",
+  "lat": 48.88073523727109,
+  "lon": 2.35747081044636
+ },
+ "Sainte-Avoie": {
+  "arr": 3,
+  "kind": "quartier",
+  "lat": 48.862557245043206,
+  "lon": 2.354851518245669
+ },
+ "Sainte-Marguerite": {
+  "arr": 11,
+  "kind": "quartier",
+  "lat": 48.85209650697998,
+  "lon": 2.3887648336025635
+ },
+ "Sainte-Marthe": {
+  "kind": "lieu",
+  "lat": 48.8740684,
+  "lon": 2.3725072
+ },
+ "Salpêtrière": {
+  "arr": 13,
+  "kind": "quartier",
+  "lat": 48.83740588522813,
+  "lon": 2.3633186351497177
+ },
+ "Simplon": {
+  "kind": "lieu",
+  "lat": 48.8938481,
+  "lon": 2.3478412
+ },
+ "Sorbonne": {
+  "arr": 5,
+  "kind": "quartier",
+  "lat": 48.8490447659431,
+  "lon": 2.3457466001872485
+ },
+ "Square Montholon": {
+  "kind": "lieu",
+  "lat": 48.8769919,
+  "lon": 2.3464947
+ },
+ "Stalingrad": {
+  "kind": "lieu",
+  "lat": 48.8842416,
+  "lon": 2.3670741
+ },
+ "Strasbourg - Saint-Denis": {
+  "kind": "lieu",
+  "lat": 48.8693002,
+  "lon": 2.3542855
+ },
+ "Strasbourg-Saint-Denis": {
+  "kind": "lieu",
+  "lat": 48.8693002,
+  "lon": 2.3542855
+ },
+ "Temple": {
+  "kind": "lieu",
+  "lat": 48.8664946,
+  "lon": 2.3607078
+ },
+ "Ternes": {
+  "arr": 17,
+  "kind": "quartier",
+  "lat": 48.88117755028415,
+  "lon": 2.289963738115156
+ },
+ "Télégraphe": {
+  "kind": "lieu",
+  "lat": 48.8754961,
+  "lon": 2.3989653
+ },
+ "Val-de-Grace": {
+  "arr": 5,
+  "kind": "quartier",
+  "lat": 48.84168428795317,
+  "lon": 2.3438609263160095
+ },
+ "Villette": {
+  "arr": 19,
+  "kind": "quartier",
+  "lat": 48.88766108880349,
+  "lon": 2.3744682121256666
+ },
+ "Vivienne": {
+  "arr": 2,
+  "kind": "quartier",
+  "lat": 48.86910019977125,
+  "lon": 2.3394607437483312
+ },
+ "Voltaire": {
+  "kind": "lieu",
+  "lat": 48.8581794,
+  "lon": 2.3798223
+ },
+ "Église Saint-Vincent-de-Paul": {
+  "kind": "lieu",
+  "lat": 48.8789736,
+  "lon": 2.3519244
+ }
+}

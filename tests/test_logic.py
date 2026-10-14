@@ -297,3 +297,19 @@ def test_bienici_tracking_links_with_embedded_url():
     </table>"""
     items = gmail_alerts.parse_email_html(html)
     assert [(i["ext_id"], i["price"], i["postcode"]) for i in items] == [("netty-robert-appt-6201", 895000, "75020")]
+
+
+def test_place_from_text(cfg):
+    from radar import geo
+    cfg["zone"] = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Polygon",
+                   "coordinates": [[[2.36, 48.86], [2.385, 48.86], [2.385, 48.875], [2.36, 48.875], [2.36, 48.86]]]}}]}
+    base = dict(BASE, lat=None, lon=None, geo_precision=None)
+    inside = analyze.analyze(dict(base, title="Paris 11e - FOLIE-MÉRICOURT - Appartement", postcode="75011"), cfg)
+    assert inside["geo_place"] == "Folie-Méricourt" and inside["geo_status"] == "approx"
+    svp = analyze.analyze(dict(base, title="Paris 10e - SAINT-VINCENT DE PAUL - Appartement", postcode="75010"), cfg)
+    assert svp["geo_place"] == "Saint-Vincent-de-Paul" and svp["status"] == "rejete"
+    # nom d'agence et lieu d'un autre arrondissement ignorés
+    assert geo.find_place("AGENCE DES ENFANTS ROUGES vous propose", {11}) is None
+    assert geo.find_place("à 10 minutes de la gare de Lyon", {11}) is None
+    assert geo.find_place("un vrai paradis de lumière", {10}) is None
+    assert geo.find_place("rue de Paradis, beau 4 pièces", {10})[1] == "Rue de Paradis"

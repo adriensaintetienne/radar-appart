@@ -187,6 +187,7 @@ function cardHtml(l) {
     l.floor != null && (l.floor === 0 ? "RDC" : `${l.floor}e étage`),
     l.elevator === true ? "ascenseur" : l.elevator === false ? "sans ascenseur" : null,
     l.postcode, l.agency,
+    l.geo_place && `📍 d'après « ${l.geo_place} »`,
   ].filter(Boolean).join(" · ");
   const ppm2 = l.price && l.surface ? `${Math.round(l.price / l.surface).toLocaleString("fr-FR")} €/m²` : "";
   const b = l.cost_breakdown;
