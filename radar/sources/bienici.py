@@ -90,6 +90,8 @@ def _to_item(ad):
         "geo_precision": "exact" if precise else (
             "arrondissement" if blur.get("type") == "cityOrArrondissement" or (blur.get("radius") or 0) >= 500
             else ("approx" if pos else None)),
+        "geo_radius": blur.get("radius"),
+        "district": (ad.get("district") or {}).get("name") if isinstance(ad.get("district"), dict) else None,
         "property_type": ad.get("propertyType"),
         "new_build": bool(ad.get("newProperty")),
         "build_year": _num(ad.get("yearOfConstruction")),

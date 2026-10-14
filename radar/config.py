@@ -12,6 +12,9 @@ DEFAULT_CONFIG = {
     "postcodes": ["75010", "75011", "75019", "75020"],
     # Tolérance (mètres) autour de la zone pour les positions floutées : 0 = exclusion stricte
     "zone_tolerance_m": 0,
+    # Position incertaine (quartier, position floutée) : part de la surface possible du bien dans la zone
+    "zone_out_below": 0.20,  # en dessous -> écarté
+    "zone_in_above": 0.80,   # au-dessus -> dans la zone ; entre les deux -> à vérifier
     "property_types": ["appartement", "loft", "atelier", "duplex"],
     "budget": {
         "total_max": 1400000,

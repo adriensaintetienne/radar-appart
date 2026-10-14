@@ -112,15 +112,15 @@ def test_zone_polygon(cfg):
     assert inside["status"] == "match"
     outside = analyze.analyze(dict(BASE, lat=48.85, lon=2.40, geo_precision="exact"), cfg)
     assert outside["status"] == "rejete"
-    # juste à côté de la zone : écarté par défaut (exclusion stricte)
-    edge = analyze.analyze(dict(BASE, lat=48.8702, lon=2.38, geo_precision="approx"), cfg)
-    assert edge["status"] == "rejete"
-    # avec une tolérance réglée : à vérifier
-    cfg["zone_tolerance_m"] = 300
-    edge = analyze.analyze(dict(BASE, lat=48.8702, lon=2.38, geo_precision="approx"), cfg)
-    assert edge["status"] == "a_verifier"
-    # sans aucune position : jamais « correspond »
-    cfg["zone_tolerance_m"] = 0
+    # position floutée (±250 m) à cheval sur la limite : à vérifier
+    edge = analyze.analyze(dict(BASE, lat=48.8702, lon=2.38, geo_precision="approx", geo_radius=250), cfg)
+    assert edge["status"] == "a_verifier" and "%" in " ".join(edge["reasons"])
+    # position floutée dont l'essentiel tombe hors zone : écartée d'office
+    far = analyze.analyze(dict(BASE, lat=48.8725, lon=2.38, geo_precision="approx", geo_radius=250), cfg)
+    assert far["status"] == "rejete", far["reasons"]
+    # flou faible (±50 m) entièrement dans la zone : correspond
+    near = analyze.analyze(dict(BASE, lat=48.865, lon=2.38, geo_precision="approx", geo_radius=50), cfg)
+    assert near["status"] == "match"
     nopos = analyze.analyze(dict(BASE, description=BASE["description"]), cfg)
     assert nopos["status"] == "a_verifier"
 

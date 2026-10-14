@@ -7,7 +7,7 @@ from .textparse import normalize
 
 MERGE_FIELDS = ("title", "description", "price", "surface", "rooms", "bedrooms", "floor", "elevator",
                 "cellar", "top_floor", "build_year", "postcode", "lat", "lon", "geo_precision",
-                "property_type", "new_build", "agency", "dpe", "published_at", "full_text")
+                "property_type", "new_build", "agency", "dpe", "published_at", "full_text", "geo_radius", "district")
 
 
 def now_iso():

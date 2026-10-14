@@ -65,7 +65,8 @@ def analyze(listing, cfg):
         reasons_reject.append(f"type de bien exclu ({listing.get('property_type')})")
 
     # --- localisation
-    gstatus, gmsg = geo.locate(listing, cfg["zone"], cfg["postcodes"], cfg.get("zone_tolerance_m", 0))
+    gstatus, gmsg = geo.locate(listing, cfg["zone"], cfg["postcodes"], cfg.get("zone_tolerance_m", 0),
+                                cfg.get("zone_out_below", 0.20), cfg.get("zone_in_above", 0.80))
     listing["geo_status"] = gstatus
     if gstatus == "out":
         reasons_reject.append(gmsg)
