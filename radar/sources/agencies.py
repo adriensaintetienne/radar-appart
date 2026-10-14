@@ -52,6 +52,7 @@ def fetch_agency(agency, known_keys, postcodes=None):
             r = http.get(link, min_delay=2.5)
             item.update({k: v for k, v in parse_detail_html(r.text).items() if v is not None})
             item["enriched"] = True
+            item["full_text"] = True
         except Exception as e:
             item["enrich_error"] = str(e)[:160]
         items.append(item)

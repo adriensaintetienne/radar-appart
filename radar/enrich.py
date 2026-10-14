@@ -11,6 +11,9 @@ from bs4 import BeautifulSoup
 from . import http
 from .textparse import extract_all
 
+CONTENT_SELECTORS = [".classified-content", "#classified-description", "[class*=annonce-description]",
+                     "[class*=property-description]", "[itemprop=description]"]
+
 LBC_ATTR_MAP = {
     "square": "surface", "rooms": "rooms", "bedrooms": "bedrooms", "floor_number": "floor",
     "elevator": "elevator", "nb_floors_building": None,
@@ -119,6 +122,14 @@ def parse_detail_html(html):
     for t in soup(["script", "style", "noscript", "header", "footer", "nav"]):
         t.decompose()
     body = re.sub(r"\s+", " ", soup.get_text(" ", strip=True))
+    # Blocs « contenu de l'annonce » connus (Figaro Immobilier…) : description complète + atouts + caractéristiques
+    for sel in CONTENT_SELECTORS:
+        el = soup.select_one(sel)
+        if el:
+            txt = re.sub(r"\s+", " ", el.get_text(" ", strip=True))
+            if len(txt) > len(out.get("description") or ""):
+                out["description"] = txt[:6000]
+            break
     if not out.get("description"):
         desc = og.get("og:description") or ""
         out["description"] = desc if len(desc) > 200 else body[:4000]
@@ -129,14 +140,30 @@ def parse_detail_html(html):
     return out
 
 
+def _bienici_api(url):
+    """Fiche complète d'une annonce Bien'ici via son API (la page web, elle, est vide sans JavaScript)."""
+    from .sources import bienici
+    m = re.search(r"bienici\.com/annonce/(?:[^/?#]+/)*?([^/?#]*\d[^/?#]*)(?:[?#]|$)", url)
+    if not m:
+        return None
+    r = http.get("https://www.bienici.com/realEstateAd.json", params={"id": m.group(1)}, min_delay=1.5,
+                 headers={"Accept": "application/json"})
+    item = bienici._to_item(r.json())
+    item.pop("source", None)
+    return {k: v for k, v in item.items() if v not in (None, "", [])}
+
+
 def enrich(item):
     """Complète `item` à partir de sa fiche. Renvoie True si la fiche a pu être lue."""
     try:
-        r = http.get(item["url"], min_delay=3.0)
+        if "bienici.com/annonce/" in item["url"]:
+            data = _bienici_api(item["url"]) or {}
+        else:
+            r = http.get(item["url"], min_delay=3.0)
+            data = parse_detail_html(r.text)
     except Exception as e:
         item["enrich_error"] = str(e)[:160]
         return False
-    data = parse_detail_html(r.text)
     for k, v in data.items():
         if v is None:
             continue
@@ -149,4 +176,5 @@ def enrich(item):
         elif item.get(k) is None:
             item[k] = v
     item["enriched"] = True
+    item["full_text"] = True
     return True

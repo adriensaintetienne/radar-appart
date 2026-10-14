@@ -30,6 +30,8 @@ DEFAULT_CONFIG = {
         "possible_min_rooms": 4,
     },
     "elevator_required_from_floor": 1,
+    # Description complète sans le mot « ascenseur » = pas d'ascenseur
+    "no_mention_means_no_elevator": True,
     "exclude_built_from_year": 1960,
     "exclude_keywords": [
         "viager", "nue-propriete", "nue propriete", "usufruit", "vendu loue", "vente occupee",

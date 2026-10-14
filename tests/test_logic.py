@@ -313,3 +313,17 @@ def test_place_from_text(cfg):
     assert geo.find_place("à 10 minutes de la gare de Lyon", {11}) is None
     assert geo.find_place("un vrai paradis de lumière", {10}) is None
     assert geo.find_place("rue de Paradis, beau 4 pièces", {10})[1] == "Rue de Paradis"
+
+
+def test_no_elevator_mention_means_none(cfg):
+    long_desc = "Bel appartement familial, parquet, moulures, lumineux, au calme sur cour. " * 4
+    direct = [{"source": "bienici", "url": "u", "key": "k"}]
+    l = analyze.analyze(dict(BASE, elevator=None, floor=3, description=long_desc, sources=direct), cfg)
+    assert l["status"] == "rejete" and any("aucun ascenseur mentionné" in r for r in l["reasons"])
+    l = analyze.analyze(dict(BASE, elevator=None, floor=0, description=long_desc, sources=direct), cfg)
+    assert not any("ascenseur" in r for r in l["reasons"])          # rez-de-chaussée : pas besoin
+    l = analyze.analyze(dict(BASE, elevator=None, floor=3, description=long_desc + " Ascenseur.", sources=direct), cfg)
+    assert not any("ascenseur" in r for r in l["reasons"])          # mentionné -> présent
+    email = [{"source": "seloger", "url": "u", "key": "k"}]
+    l = analyze.analyze(dict(BASE, elevator=None, floor=3, description="4 pièces 100 m² Paris 11e", sources=email), cfg)
+    assert l["status"] == "a_verifier"                               # résumé d'email : on ne conclut pas

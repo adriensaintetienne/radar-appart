@@ -4,6 +4,7 @@ Usage : python -m radar.main --data ./data [--dry-run] [--only bienici,gmail,...
 """
 import argparse
 import os
+import re
 import sys
 import time
 import traceback
@@ -15,6 +16,10 @@ from .enrich import enrich
 from .http import Blocked
 from .sources import agencies, bienici, gmail_alerts, websearch
 from .store import Store, now_iso, source_key
+
+# Sites qui bloquent systématiquement les robots : inutile d'essayer d'ouvrir leurs fiches
+BLOCKING_SITES = re.compile(r"seloger\.com|leboncoin\.fr|pap\.fr|logic-immo\.com|bellesdemeures\.com")
+
 
 def log(msg):
     print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
@@ -114,6 +119,35 @@ def run(data_dir, dry_run=False, only=None):
             run_summary["sources"][name] = {"ok": False, "error": type(e).__name__}
             log(f"  ERREUR : {type(e).__name__}")
             traceback.print_exc(limit=2, file=sys.stdout) if os.environ.get("RADAR_DEBUG") else None
+
+    # ---------- 1 bis. Rattrapage : ouvrir les fiches des annonces déjà en base mais jamais lues en entier
+    if cfg.get("enrich_detail_pages"):
+        budget = cfg.get("enrich_backfill_per_run", 30)
+        for l in store.listings.values():
+            if budget <= 0:
+                break
+            if l.get("full_text") or l.get("enrich_tried") or not l.get("active", True) \
+                    or any(s["source"] == "bienici" and len(l.get("description") or "") >= 200 for s in l["sources"]):
+                continue
+            src = next((s for s in l["sources"] if urlparse(s["url"]).netloc not in blocked_domains
+                        and not BLOCKING_SITES.search(s["url"])), None)
+            if not src:
+                continue
+            budget -= 1
+            item = {"url": src["url"], "description": l.get("description")}
+            l["enrich_tried"] = now_iso()
+            if enrich(item):
+                for k, v in item.items():
+                    if k in ("url", "enriched", "enrich_error") or v in (None, "", []):
+                        continue
+                    if k == "description" and len(v) <= len(l.get("description") or ""):
+                        continue
+                    if k == "photos":
+                        l.setdefault("photos", v[:8]) if not l.get("photos") else None
+                    elif k in ("full_text", "description") or l.get(k) is None:
+                        l[k] = v
+            elif "bloqué" in item.get("enrich_error", ""):
+                blocked_domains.add(urlparse(src["url"]).netloc)
 
     # ---------- 2. Analyse (toutes les annonces, pour refléter d'éventuels changements de critères)
     for l in store.listings.values():

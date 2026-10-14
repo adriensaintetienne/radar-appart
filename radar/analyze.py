@@ -109,11 +109,21 @@ def analyze(listing, cfg):
     # --- étage / ascenseur
     floor, elevator = listing.get("floor"), listing.get("elevator")
     req = cfg["elevator_required_from_floor"]
+    # Description complète disponible (Bien'ici, site d'agence, fiche ouverte) et aucun ascenseur mentionné :
+    # on considère qu'il n'y en a pas. Les résumés d'email (2 lignes) ne permettent pas cette conclusion.
+    full_text = (listing.get("full_text") or any(s["source"] == "bienici" or s["source"].startswith("agence:")
+                                                 for s in listing.get("sources", []))) \
+        and len(listing.get("description") or "") >= 200
+    assumed = elevator is None and full_text and floor != 0 and cfg.get("no_mention_means_no_elevator", True)
+    if assumed:
+        elevator = False
     if floor is not None and floor >= req:
         if elevator is False:
-            reasons_reject.append(f"{floor}e étage sans ascenseur")
+            reasons_reject.append(f"{floor}e étage sans ascenseur" + (" (aucun ascenseur mentionné)" if assumed else ""))
         elif elevator is None:
-            reasons_check.append(f"{floor}e étage, ascenseur non précisé")
+            reasons_check.append(f"{floor}e étage, ascenseur non précisé (annonce incomplète)")
+    elif floor is None and elevator is False and assumed:
+        reasons_reject.append("aucun ascenseur mentionné (étage non précisé)")
     elif floor is None and elevator is not True:
         reasons_check.append("étage / ascenseur non précisés")
     if floor == 0:

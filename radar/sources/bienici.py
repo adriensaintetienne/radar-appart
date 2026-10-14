@@ -97,6 +97,7 @@ def _to_item(ad):
         "agency": ad.get("accountDisplayName"),
         "published_at": ad.get("publicationDate"),
         "photos": [p for p in photos if p],
+        "full_text": True,
     }
 
 

@@ -145,7 +145,7 @@ def parse_floor(text):
     m = ORDINAL_FLOOR_RE.search(n) or FLOOR_ALT_RE.search(n)
     if m:
         v = int(m.group(1))
-        if 0 <= v <= 40:
+        if 0 <= v <= 15:  # au-delà, c'est presque toujours un numéro de rue ou une autre donnée mal lue
             return v
     if re.search(r"\bpremier etage\b", n):
         return 1
