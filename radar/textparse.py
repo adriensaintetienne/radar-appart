@@ -83,8 +83,8 @@ def parse_surface(text):
     n = normalize(text)
     vals = []
     for m in SURFACE_RE.finditer(n):
-        head = n[max(0, m.start() - 30):m.start()]
-        if re.search(r"terrasse|balcon|jardin|cave|loggia|terrain|cour", head):
+        head = n[max(0, m.start() - 22):m.start()]
+        if re.search(r"\b(terrasse|balcon|jardin|cave|loggia|terrain|cour|exterieur|rooftop)s?\b(?!\s*(?:et|,)?\s*(?:un|une|des)\b)", head):
             continue
         v = _to_number(m.group(1))
         if v and 9 <= v <= 1000:

@@ -126,7 +126,7 @@ async function loadAll() {
   S.state = st.data;
   S.tracking = tr.data; S.tracking.items ||= {};
   $("#last-update").textContent = S.updatedAt ? `mis à jour ${ago(S.updatedAt)}` : "aucun passage encore";
-  renderListings(); renderCriteria(); renderAlerts(); renderSources(); renderVerifyStats();
+  renderListings(); renderCriteria(); renderAlerts(); renderSources(); renderVerifyStats(); renderManualList();
   const active = localStorage.getItem("radar-tab");
   if (active === "carte" || active === "zone") showTab(active);
 }
@@ -205,6 +205,7 @@ function cardHtml(l) {
       ${photo ? "" : "🏠"}
       <span class="badge-status ${l.status}">${STATUS[l.status] || l.status}</span>
       <span class="score">${l.score ?? 0}</span>
+      ${l.manual ? '<span class="manual-badge">✋ ajoutée</span>' : ""}
       ${l.active === false ? '<span class="new" style="background:#555">Retirée</span>' : isNew ? '<span class="new">Nouveau</span>' : ""}
     </a>
     <div class="body">
@@ -256,6 +257,42 @@ async function saveTracking(id, patch, message = "Suivi enregistré") {
     S.tracking = res.data; S.trackingSha = res.sha;
     toast(message);
   } catch (e) { toast("Échec de l'enregistrement : " + e.message, true); }
+}
+
+/* ---------------- Ajout manuel d'une annonce ---------------- */
+async function addManual() {
+  const url = $("#m-url").value.trim(), text = $("#m-text").value.trim();
+  if (!url && !text) return toast("Collez au moins un lien ou le texte de l'annonce", true);
+  const n = (id) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : null; };
+  const b = (id) => ($(id).value === "" ? null : $(id).value === "1");
+  const fields = { price: n("#m-price"), surface: n("#m-surface"), rooms: n("#m-rooms"), bedrooms: n("#m-bedrooms"),
+    floor: n("#m-floor"), elevator: b("#m-elev"), cellar: b("#m-cellar"), postcode: $("#m-pc").value.trim() || null };
+  const entry = { id: "m" + Date.now().toString(36), url, text, fields, added_at: new Date().toISOString() };
+  const btn = $("#btn-add-manual"); btn.disabled = true;
+  try {
+    const res = await updateJson("tracking.json", { items: {} }, (d) => { d.manual_queue ||= []; d.manual_queue.push(entry); },
+      "Annonce ajoutée à la main");
+    S.tracking = res.data;
+    ["#m-url", "#m-text", "#m-price", "#m-surface", "#m-pc", "#m-rooms", "#m-bedrooms", "#m-floor"].forEach((s) => ($(s).value = ""));
+    $("#m-elev").value = ""; $("#m-cellar").value = "";
+    renderManualList();
+    await runNow(true);
+  } catch (e) { toast("Échec : " + e.message, true); } finally { btn.disabled = false; }
+}
+
+function renderManualList() {
+  const queue = (S.tracking.manual_queue || []).slice(-8).reverse(), done = S.state.manual_done || {};
+  $("#manual-list").innerHTML = queue.length ? `<h3>Annonces ajoutées</h3>` + queue.map((e) => {
+    const d = done[e.id], label = esc((e.url || e.text || "").slice(0, 80));
+    if (!d) return `<div class="manual-item">⏳ <span>${label}</span> <span class="muted">— en attente d'analyse (2 à 10 min)</span></div>`;
+    if (!d.ok) return `<div class="manual-item">❌ <span>${label}</span><br><span class="err">${esc(d.message)}</span></div>`;
+    const l = S.listings[d.listing_id];
+    return `<div class="manual-item">✅ <span>${label}</span> — ${l ? `<b>${STATUS[l.status]}</b>, score ${l.score}` : "analysée"}
+      ${d.merged ? '<span class="muted">(annonce déjà connue du radar)</span>' : ""}
+      ${l ? `<button class="btn ghost small m-open" data-id="${l.id}">Voir la fiche</button>` : ""}
+      ${d.message ? `<br><span class="muted">${esc(d.message)}</span>` : ""}</div>`;
+  }).join("") : "";
+  $$("#manual-list .m-open").forEach((b) => (b.onclick = () => openListing(b.dataset.id)));
 }
 
 /* ---------------- Cartes ---------------- */
@@ -675,12 +712,13 @@ function renderVerifyStats() {
 }
 
 /* ---------------- Lancer le robot ---------------- */
-async function runNow() {
+async function runNow(quiet = false) {
   const btn = $("#btn-run");
   btn.disabled = true;
   try {
     await gh(`/repos/${conn().codeRepo}/actions/workflows/radar.yml/dispatches`, { method: "POST", body: JSON.stringify({ ref: "main" }) });
-    toast("🚀 Recherche lancée. Résultats dans 3 à 10 minutes (rechargez la page).");
+    toast(quiet ? "✅ Annonce ajoutée : analyse en cours (2 à 10 min), rechargez ensuite la page."
+                : "🚀 Recherche lancée. Résultats dans 3 à 10 minutes (rechargez la page).");
   } catch (e) {
     toast(e.status === 403 || e.status === 404 ? "Le jeton n'a pas le droit de lancer le robot (permission « Actions » sur le dépôt du code)." : "Échec : " + e.message, true);
   } finally { btn.disabled = false; }
@@ -726,6 +764,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#btn-add-agency").onclick = () => addAgencyRow({ name: "", enabled: true, list_urls: [], link_pattern: "", match_names: [], silence_alert_hours: 168 });
   $("#btn-save-agencies").onclick = saveAgencies;
   $("#btn-verify").onclick = verify;
+  $("#btn-add-manual").onclick = addManual;
   $("#btn-run").onclick = runNow;
   start();
 });

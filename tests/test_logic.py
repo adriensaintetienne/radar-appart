@@ -327,3 +327,32 @@ def test_no_elevator_mention_means_none(cfg):
     email = [{"source": "seloger", "url": "u", "key": "k"}]
     l = analyze.analyze(dict(BASE, elevator=None, floor=3, description="4 pièces 100 m² Paris 11e", sources=email), cfg)
     assert l["status"] == "a_verifier"                               # résumé d'email : on ne conclut pas
+
+
+def test_manual_listing(tmp_path, monkeypatch):
+    """Annonce ajoutée depuis le tableau de bord : texte collé + champs saisis ; site bloqué sans info -> message."""
+    from radar import main, enrich as enrich_mod
+    from radar.sources import manual
+    (tmp_path / "config.json").write_text(json.dumps({"sources": {"gmail": {"enabled": False}, "bienici": {"enabled": False},
+                                                                  "websearch": {"enabled": False}, "agencies": []}}))
+    (tmp_path / "state.json").write_text(json.dumps({"runs": [{}], "welcome_sent": True}))
+    (tmp_path / "tracking.json").write_text(json.dumps({"items": {}, "manual_queue": [
+        {"id": "m1", "url": "https://www.seloger.com/annonce/achat/x/26ABCDEFGH",
+         "text": "Paris 11e - FOLIE-MÉRICOURT - Appartement 5 pièces 104 m², 3 chambres, 4e étage avec ascenseur, "
+                 "lumineux, parquet, cave. À rénover. " * 2, "fields": {"price": 1000000}},
+        {"id": "m2", "url": "https://www.leboncoin.fr/ad/ventes_immobilieres/123456789", "text": "", "fields": {}},
+    ]}))
+    def blocked(item):
+        item["enrich_error"] = "www.seloger.com a bloqué la requête (HTTP 403)"; return False
+    monkeypatch.setattr(manual, "enrich", blocked)
+    main.run(str(tmp_path), dry_run=True)
+    state = json.loads((tmp_path / "state.json").read_text())
+    listings = json.loads((tmp_path / "listings.json").read_text())["listings"]
+    m1, m2 = state["manual_done"]["m1"], state["manual_done"]["m2"]
+    assert m1["ok"] and "page non lisible" in m1["message"]
+    l = listings[m1["listing_id"]]
+    assert l["manual"] and l["price"] == 1000000 and l["surface"] == 104 and l["floor"] == 4 and l["elevator"] is True
+    assert l["status"] in ("match", "a_verifier", "negociable", "rejete") and l["score"] > 0
+    assert not m2["ok"] and "collez le texte" in m2["message"]
+    main.run(str(tmp_path), dry_run=True)  # déjà traitées : rien ne bouge
+    assert len(json.loads((tmp_path / "listings.json").read_text())["listings"]) == 1

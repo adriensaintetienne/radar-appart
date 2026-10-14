@@ -14,7 +14,7 @@ from . import ai, analyze, health, notify
 from .config import load_config, load_json, save_json
 from .enrich import enrich
 from .http import Blocked
-from .sources import agencies, bienici, gmail_alerts, websearch
+from .sources import agencies, bienici, gmail_alerts, manual, websearch
 from .store import Store, now_iso, source_key
 
 # Sites qui bloquent systématiquement les robots : inutile d'essayer d'ouvrir leurs fiches
@@ -119,6 +119,24 @@ def run(data_dir, dry_run=False, only=None):
             run_summary["sources"][name] = {"ok": False, "error": type(e).__name__}
             log(f"  ERREUR : {type(e).__name__}")
             traceback.print_exc(limit=2, file=sys.stdout) if os.environ.get("RADAR_DEBUG") else None
+
+    # ---------- 1 ter. Annonces ajoutées à la main depuis le tableau de bord
+    manual_done = state.setdefault("manual_done", {})
+    for entry in manual.pending(tracking, state):
+        try:
+            item, note = manual.build_item(entry)
+        except Exception as e:
+            item, note = None, f"erreur : {type(e).__name__}"
+        if item is None:
+            manual_done[entry["id"]] = {"at": now_iso(), "ok": False, "message": note}
+            continue
+        lid, evs = store.upsert(item)
+        listing = store.listings[lid]
+        listing["manual"] = True
+        listing.setdefault("alerted", now_iso())  # ajoutée par vous : pas besoin d'alerte
+        manual_done[entry["id"]] = {"at": now_iso(), "ok": True, "listing_id": lid, "message": note,
+                                    "merged": "new" not in evs}
+        log(f"  Annonce ajoutée à la main : {'fusionnée avec une annonce connue' if 'new' not in evs else 'nouvelle'}")
 
     # ---------- 1 bis. Rattrapage : ouvrir les fiches des annonces déjà en base mais jamais lues en entier
     if cfg.get("enrich_detail_pages"):

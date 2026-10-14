@@ -43,6 +43,26 @@
 
   <!-- Annonces -->
   <section id="tab-annonces" class="tab">
+    <details id="add-panel" class="panel add-panel">
+      <summary><b>+ Ajouter une annonce</b> <span class="muted">— collez un lien, le robot l'analyse et la classe avec les autres</span></summary>
+      <label>Lien de l'annonce<input id="m-url" placeholder="https://…"></label>
+      <label>Texte de l'annonce <span class="muted">(facultatif — utile pour SeLoger, Leboncoin, PAP… qui empêchent la lecture automatique : copiez-collez la description)</span>
+        <textarea id="m-text" rows="5" placeholder="Collez ici la description complète de l'annonce"></textarea></label>
+      <details><summary class="muted">Préciser des informations (facultatif, prioritaires sur tout le reste)</summary>
+        <div class="grid3">
+          <label>Prix (€)<input id="m-price" type="number"></label>
+          <label>Surface (m²)<input id="m-surface" type="number" step="0.1"></label>
+          <label>Code postal<input id="m-pc" placeholder="75011"></label>
+          <label>Pièces<input id="m-rooms" type="number"></label>
+          <label>Chambres<input id="m-bedrooms" type="number"></label>
+          <label>Étage (0 = RDC)<input id="m-floor" type="number"></label>
+          <label>Ascenseur<select id="m-elev"><option value="">?</option><option value="1">Oui</option><option value="0">Non</option></select></label>
+          <label>Cave<select id="m-cellar"><option value="">?</option><option value="1">Oui</option><option value="0">Non</option></select></label>
+        </div>
+      </details>
+      <div class="row"><button id="btn-add-manual" class="btn">Ajouter et analyser</button></div>
+      <div id="manual-list"></div>
+    </details>
     <div class="filters">
       <div class="chips" id="f-status"></div>
       <div class="filter-row">

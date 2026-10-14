@@ -121,3 +121,9 @@ th { color: var(--muted); font-weight: 600; }
 .pop-photo { height: 110px; border-radius: 8px; background: var(--bg) center/cover no-repeat; margin-bottom: 4px; }
 .pop-actions { display: flex; gap: 6px; margin: 4px 0; }
 .pop .badge-status { font-size: 11px; padding: 2px 7px; }
+
+.add-panel summary { cursor: pointer; }
+.add-panel[open] summary { margin-bottom: 8px; }
+.manual-item { padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.manual-item .btn { margin-left: 6px; }
+.card .photo .manual-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,.72); color: #fff; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
