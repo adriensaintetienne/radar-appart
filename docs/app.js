@@ -173,6 +173,7 @@ function filteredListings() {
     price: (a, b) => (a.price || 1e12) - (b.price || 1e12),
     ppm2: (a, b) => ppm2(a) - ppm2(b),
     total: (a, b) => (a.total_cost || 1e12) - (b.total_cost || 1e12),
+    market: (a, b) => (a.market?.local ? a.market.gap_pct : 999) - (b.market?.local ? b.market.gap_pct : 999),
   }[sort];
   return arr.sort(cmp);
 }
@@ -193,6 +194,19 @@ function cardHtml(l) {
   const b = l.cost_breakdown;
   const total = l.total_cost ? `<div class="total">Coût total estimé <b>${eur(l.total_cost)}</b>
       <span class="muted">(${eur(b?.price)} + notaire ${eur(b?.notary)} + travaux ${eur(b?.works)} — état : ${{ heavy: "à rénover", refresh: "à rafraîchir", none: "refait", unknown: "inconnu" }[l.state] || "?"}${l.architect ? ", archi" : ""})</span></div>` : "";
+  const mk = l.market;
+  const reliable = mk && mk.local && !mk.surface_outside;
+  const market = mk ? `<div class="market ${!reliable ? "" : mk.gap_pct <= -5 ? "good" : mk.gap_pct >= 10 ? "bad" : ""}">
+      Marché : <b>${mk.gap_pct > 0 ? "+" : ""}${mk.gap_pct.toFixed(0)} %</b> vs ventes récentes
+      <span class="muted">(${mk.listing_m2_net.toLocaleString("fr-FR")} €/m² hors honoraires · médiane ${mk.median_m2.toLocaleString("fr-FR")} €/m²)</span>
+      ${!mk.local ? `<br><span class="warn">indicatif : position inconnue, comparé à tout l'arrondissement</span>` : ""}
+      ${mk.surface_outside ? `<br><span class="warn">surface hors de la fourchette comparée (${mk.surface_range[0]}–${mk.surface_range[1]} m²) : le prix au m² baisse avec la surface</span>` : ""}
+      <details><summary>Détail de la comparaison</summary><div class="muted">
+        ${mk.n} ventes réelles d'appartements de ${mk.surface_range[0]} à ${mk.surface_range[1]} m² ${esc(mk.where)} (${esc(mk.period)}), source DVF.<br>
+        Moitié des ventes entre ${mk.p25_m2.toLocaleString("fr-FR")} et ${mk.p75_m2.toLocaleString("fr-FR")} €/m².
+        Prix de l'annonce ramené hors honoraires d'agence (≈ ${Math.round(mk.fee_rate * 100)} %).
+        Les ventes ne distinguent pas l'état : un bien à rénover se vend normalement sous la médiane.</div></details>
+    </div>` : "";
   const plus = (l.score_details || []).map((d) => `<span class="tag ${d.startsWith("Rénovation standard") ? "minus" : "plus"}">${esc(d)}</span>`).join("");
   const flags = (l.flags || []).map((f) => `<span class="tag">${esc(f)}</span>`).join("");
   const reasons = (l.reasons || []).length ? `<div class="reasons ${l.status === "rejete" ? "rej" : ""}">${l.status === "rejete" ? "Écartée : " : "À vérifier : "}${esc(l.reasons.join(" · "))}</div>` : "";
@@ -213,6 +227,7 @@ function cardHtml(l) {
       <div class="title">${esc((l.title || "").slice(0, 110))}</div>
       <div class="facts">${esc(facts)}</div>
       ${total}
+      ${market}
       <div class="tags">${plus}${flags}</div>
       ${reasons}${ai}
       <div class="sources">${srcs}</div>

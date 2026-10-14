@@ -127,3 +127,7 @@ th { color: var(--muted); font-weight: 600; }
 .manual-item { padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
 .manual-item .btn { margin-left: 6px; }
 .card .photo .manual-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,.72); color: #fff; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
+
+.market { font-size: 13px; }
+.market.good b { color: var(--match); }
+.market.bad b { color: var(--danger); }

@@ -6,7 +6,7 @@ Statuts possibles :
   negociable  : coût total jusqu'à +5 % au-dessus du budget
   rejete      : au moins un critère éliminatoire violé (le motif est conservé et visible)
 """
-from . import geo
+from . import dvf, geo
 from .textparse import extract_all, find_keywords, normalize
 
 
@@ -164,6 +164,17 @@ def analyze(listing, cfg):
         if state == "unknown":
             flags.append("état inconnu : travaux estimés à %d €/m²" % b["works_per_m2"]["unknown"])
 
+    # --- comparaison avec les ventes récentes du quartier (DVF)
+    mk = cfg.get("market", {})
+    market = dvf.compare(listing, cfg) if mk.get("enabled", True) else None
+    listing["market"] = market
+    if market and market["local"] and not market["surface_outside"]:
+        g = market["gap_pct"]
+        if g <= mk.get("below_pct", -5):
+            flags.append(f"💰 {abs(g):.0f} % sous les ventes du quartier")
+        elif g >= mk.get("above_pct", 10):
+            flags.append(f"📈 {g:.0f} % au-dessus des ventes du quartier")
+
     # --- score
     score, details = compute_score(listing, ntext, cfg)
     listing["score"], listing["score_details"] = score, details
@@ -191,6 +202,8 @@ def compute_score(listing, ntext, cfg):
         "surface_ideal": surf >= ideal - 7,
         "top_floor": bool(listing.get("top_floor")),
         "state_none_not_architect": listing.get("state") == "none" and not listing.get("architect"),
+        "below_market": bool(listing.get("market") and listing["market"]["local"] and not listing["market"]["surface_outside"]
+                             and listing["market"]["gap_pct"] <= cfg.get("market", {}).get("below_pct", -5)),
     }
     ai = listing.get("ai") or {}
     total_pos = sum(r["points"] for r in cfg["scoring"] if r["points"] > 0) or 1

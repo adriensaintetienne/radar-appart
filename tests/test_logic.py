@@ -356,3 +356,14 @@ def test_manual_listing(tmp_path, monkeypatch):
     assert not m2["ok"] and "collez le texte" in m2["message"]
     main.run(str(tmp_path), dry_run=True)  # déjà traitées : rien ne bouge
     assert len(json.loads((tmp_path / "listings.json").read_text())["listings"]) == 1
+
+
+def test_market_comparison(cfg, monkeypatch):
+    from radar import dvf
+    fake = [("2025-0%d-15" % (1 + i % 9), int(10000 * s), s, "75011", 48.865 + i * 1e-5, 2.38) for i, s in enumerate([80, 90, 100, 110, 120] * 4)]
+    monkeypatch.setattr(dvf, "_SALES", fake); monkeypatch.setattr(dvf, "_CANDIDATES", {})
+    l = analyze.analyze(dict(BASE, price=1040000, surface=100, lat=48.865, lon=2.38, geo_precision="exact"), cfg)
+    mk = l["market"]
+    assert mk["median_m2"] == 10000 and mk["n"] == 20 and mk["listing_m2_net"] == 10000 and mk["gap_pct"] == 0
+    cheap = analyze.analyze(dict(BASE, price=900000, surface=100, lat=48.865, lon=2.38, geo_precision="exact"), cfg)
+    assert any("sous les ventes" in f for f in cheap["flags"]) and "Prix sous les ventes du quartier" in cheap["score_details"]

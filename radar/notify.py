@@ -36,6 +36,10 @@ def format_listing(l, event, dashboard_url=None):
         lines.append(f"Avant : {_fmt_price(old)} ({100 * (l['price'] / old - 1):+.1f} %)")
     if l.get("total_cost"):
         lines.append(f"Coût total estimé : {_fmt_price(l['total_cost'])}")
+    mk = l.get("market")
+    if mk and mk.get("local"):
+        lines.append(f"Marché : {mk['listing_m2_net']:,} €/m² (hors honoraires) vs médiane {mk['median_m2']:,} €/m² "
+                     f"({mk['n']} ventes {mk['where']}) → {mk['gap_pct']:+.0f} %".replace(",", " "))
     if l.get("score_details"):
         lines.append("+ " + ", ".join(d for d in l["score_details"] if not d.startswith("Rénovation standard")))
     if l.get("flags"):

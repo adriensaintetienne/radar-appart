@@ -77,6 +77,7 @@ DEFAULT_CONFIG = {
         {"label": "2e salle de bain", "points": 6, "keywords": ["deux salles de bains", "deux salles de bain", "2 salles de bains", "2 salles de bain", "deux salles d'eau", "2 salles d'eau", "salle de bains et une salle d'eau", "salle de bain et une salle d'eau", "salle d'eau et une salle de bain"]},
         {"label": "Extérieur", "points": 4, "keywords": ["balcon", "terrasse", "jardin", "loggia", "patio", "cour privative"]},
         {"label": "Calme", "points": 4, "keywords": ["calme", "au calme", "sur cour", "sans vis-a-vis", "sans vis a vis", "dégagé", "degage", "silencieux"]},
+        {"label": "Prix sous les ventes du quartier", "points": 8, "field": "below_market"},
         {"label": "Rénovation standard clé en main", "points": -6, "field": "state_none_not_architect"},
     ],
     "notifications": {
@@ -121,6 +122,9 @@ DEFAULT_CONFIG = {
             }
         ],
     },
+    # Comparaison avec les ventes réelles (DVF) : appartements de surface comparable, à proximité
+    "market": {"enabled": True, "surface_min": 70, "surface_max": 130, "months": 24, "min_sales": 12,
+               "agency_fee_rate": 0.04, "below_pct": -5, "above_pct": 10},
     "gemini": {"enabled": False, "model": "gemini-2.5-flash", "max_per_run": 20},
     "enrich_detail_pages": True,
 }
