@@ -1,9 +1,8 @@
 name: Radar appart
 
 on:
-  schedule:
-    # Toutes les 2 heures de 7 h à 23 h (heure de Paris, été) — horaires GitHub en UTC
-    - cron: "7 5-21/2 * * *"
+  # Recherche terminée (appartement trouvé) : plus de passage automatique.
+  # Pour relancer un jour, remettre ici le bloc « schedule » (cron "7 5-21/2 * * *").
   workflow_dispatch: {}
 
 concurrency:
